@@ -10,8 +10,13 @@ img{
     font-weight: bold;
 }
 
-.solo_leveling_pic
+.manga_pic
 {
     width: 100px;
     border-radius: 20px;
+}
+
+.manga_list_background
+{
+    background-color: lightgray;
 }
