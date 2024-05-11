@@ -26,6 +26,19 @@
         </tr>
     </table>
 
-    <a href="index.html">click to go back to the home page</a>
+    <a href="index.html">
+        <button>Home Page</button>
+    </a>
+
+    <button onclick="doSomething()">Click For Something</button>
+
+    <p id="test">test</p>
+
+    <script>
+        function doSomething(){
+            document.getElementById("test").innerHTML  = "IT WORKS";
+        }
+    </script>
+
 </body>
 </html>
