@@ -9,3 +9,7 @@
 
     float: left;
 }
+
+p{
+    clear: left;
+}
