@@ -1,0 +1,20 @@
+body{
+    background-image: url(images/codezero-high-resolution-logo.png);
+    background-repeat: no-repeat; 
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+}
+
+h1{
+    background: linear-gradient(red,black);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+p{
+    background: linear-gradient(red,black);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+}
