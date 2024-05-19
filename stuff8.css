@@ -14,7 +14,7 @@
     animation-duration: 5s;
     */
 
-    animation: 3s ease-in-out 0s infinite running myRotate;
+    animation: 3s ease-in-out 0s infinite running myColorChange;
 
 
 }
@@ -39,5 +39,17 @@
 }
 
 @keyframes myOpacity{
-    100%{opacity: 0;}
+    50%{opacity: 0;}
+}
+
+@keyframes myScale{
+    50%{transform: scale(0.5,0.5);}
+}
+
+@keyframes myColorChange{
+    20%{background-color: orange;}
+    40%{background-color: green;}
+    60%{background-color: blue;}
+    80%{background-color: purple;}
+    100%{background-color: red;}
 }
