@@ -1,0 +1,26 @@
+
+.navbar ul{
+    list-style-type: none; /*to remove the bullet points in the unordered list*/
+    background-color: gray;
+    padding: 0px;
+    margin: 0px;
+    overflow: hidden;
+}
+
+.navbar a{
+    color: rgb(255, 255, 255);
+    text-decoration: none; /*remove the underline of the links*/
+    padding: 15px;
+    display: block;
+    text-align: center;
+    
+}
+
+.navbar a:hover{
+    background-color: rgb(94, 94, 94);
+} 
+
+.navbar li{
+    float: left;
+}
+

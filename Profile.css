@@ -1,0 +1,16 @@
+#ProfileTitle{
+    text-align: center;
+}
+
+
+
+.profile_info{
+    border: 5px solid;
+    text-align: center;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
