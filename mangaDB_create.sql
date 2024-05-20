@@ -40,3 +40,9 @@ CREATE TABLE MangaCategory (
     FOREIGN KEY (categoryName) REFERENCES Category(categoryName)
 );
 
+create table User(
+    userID INT PRIMARY KEY,
+    name VARCHAR(255),
+    password VARCHAR(255),
+    profile_pic VARCHAR(300)
+);
