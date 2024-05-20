@@ -16,7 +16,7 @@ h1{
 }
 
 .navbar ul{
-    list-style-type: none;
+    list-style-type: none; /*to remove the bullet points in the unordered list*/
     background-color: gray;
     padding: 0px;
     margin: 0px;
@@ -25,7 +25,7 @@ h1{
 
 .navbar a{
     color: rgb(255, 255, 255);
-    text-decoration: none;
+    text-decoration: none; /*remove the underline of the links*/
     padding: 15px;
     display: block;
     text-align: center;
