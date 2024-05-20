@@ -1,9 +1,4 @@
-#topHomePage{
-    height: 200px;
-    display: block;
-    margin: auto;
-    
-}
+
 
 body{
     margin: 0px;
@@ -14,7 +9,10 @@ main{
 }
 
 h1{
+    background-color: rgb(196, 193, 193);
+    padding: 0px;
     text-align: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Adds a shadow to make text more readable */
 }
 
 .navbar ul{
@@ -40,4 +38,6 @@ h1{
 .navbar li{
     float: left;
 }
+
+
 
