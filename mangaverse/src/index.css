@@ -4,10 +4,11 @@ body {
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
 
-  background-image: url("/public/images/mangaweb.jpg");
+  background-image: url("/images/mangaweb.jpg");
 
   /* Make the image cover the entire page */
   background-size: cover;
+
 
   /* Center the image */
   background-position: bottom;
@@ -16,8 +17,7 @@ body {
   /* Optional: Add a fallback color */
   background-color: #f0f0f0;
 
-  /* -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale; */
+  
 }
 
 body::before {
@@ -31,8 +31,3 @@ body::before {
   z-index: -1; /* Ensure the overlay stays behind the content */
 }
 
-
-/* code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-} */
