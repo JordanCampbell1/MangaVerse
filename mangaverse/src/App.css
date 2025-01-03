@@ -3,6 +3,8 @@
   background-image: url("/images/mangaweb.jpg"); /* Replace with your image URL */
   background-size: cover; /* Ensures the image covers the entire background */
   background-position: top; /* Centers the image */
+  background-attachment: fixed; /* Keeps the image fixed in place */
+
   height: 100vh; /* Full viewport height */
 
   margin: 0; /* Remove default margin */
