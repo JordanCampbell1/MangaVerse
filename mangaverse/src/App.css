@@ -1,0 +1,36 @@
+/* Background for the entire website */
+.background {
+  background-image: url("/images/mangaweb.jpg"); /* Replace with your image URL */
+  background-size: cover; /* Ensures the image covers the entire background */
+  background-position: top; /* Centers the image */
+  height: 100vh; /* Full viewport height */
+
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+}
+
+.overlay {
+  position: absolute;
+  top: 3.9em;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black overlay */
+  /* z-index: 2;  */
+  /* Place above the background image */
+  display: flex; /* Use flexbox to center the white box */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
+/* White box styling */
+.white-box {
+  background-color: white; /* White background */
+  border-radius: 15px; /* Rounded corners */
+  width: 80%; /* Adjust width as needed */
+  max-width: 600px; 
+  /* Optional: Limit the maximum width */
+  padding: 20px; /* Inner spacing */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Optional shadow for effect */
+  text-align: center; /* Center align text */
+}
