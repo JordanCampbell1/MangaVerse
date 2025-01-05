@@ -3,6 +3,7 @@ import Categories from "./pages/Categories/Categories";
 import Updated_Manga from "./pages/Updated-Manga/updated-manga"
 import "./App.css";
 
+
 function App() {
   return (
     <>
