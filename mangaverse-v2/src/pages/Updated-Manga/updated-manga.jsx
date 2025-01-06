@@ -42,17 +42,7 @@ const Updated_Manga =  () => {
     <div>
       <h1>Updated Manga</h1>
       <div className="updated-info-container">
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
-        <h1>stuff tforsfsdf</h1>
+        <pre>{JSON.stringify(response)}</pre>
 
 
       </div>

@@ -2,3 +2,7 @@
     width: 90%;
     overflow-y: scroll;
 }
+
+.updated-info-container::-webkit-scrollbar{
+    display: none;
+}

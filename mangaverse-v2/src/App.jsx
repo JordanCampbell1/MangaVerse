@@ -1,5 +1,6 @@
 import "./App.css";
 import Header from "./Components/Header/Header";
+import Updated_Manga from "./pages/Updated-Manga/updated-manga";
 
 function App() {
   return (
@@ -8,23 +9,7 @@ function App() {
         <Header />
         <div className="layout">
           <div className="whitebox">
-            <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1> <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1> <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1> <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1> <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1> <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1> <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1> <h1>content</h1>
-            <h2>stuff</h2>
-            <h1>content</h1>
+            <Updated_Manga/>
           </div>
         </div>
       </div>
