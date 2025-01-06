@@ -4,16 +4,14 @@ body {
 }
 
 .background {
-
-
   width: 100vw;
   height: 100vh;
   background-image: url("/images/mangaweb.jpg");
- background-position: top;
- background-size: cover;
+  background-position: top;
+  background-size: cover;
 }
 
-.layout{
+.layout {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -23,10 +21,14 @@ body {
 
 .whitebox {
   height: 35em;
-  width: 25em;
-  max-width: 25em;
+  width: 75em;
+  /* max-width: 25em; */
   background-color: white;
   border-radius: 1em;
- padding: 1em;
- overflow-y: scroll;
+  padding: 1em;
+  overflow-y: scroll;
+}
+
+.whitebox::-webkit-scrollbar {
+  display: none; /* Hides scrollbar in Chrome, Safari, and Edge */
 }

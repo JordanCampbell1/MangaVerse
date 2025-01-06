@@ -19,6 +19,4 @@
   height: 2em;
 }
 
-.whitebox::-webkit-scrollbar {
-  display: none; /* Hides scrollbar in Chrome, Safari, and Edge */
-}
+
