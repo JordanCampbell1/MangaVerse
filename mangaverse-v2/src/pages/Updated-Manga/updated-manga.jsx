@@ -41,7 +41,23 @@ const Updated_Manga =  () => {
   return (
     <div>
       <h1>Updated Manga</h1>
-      <pre>{JSON.stringify(response, null, 2)}</pre>
+      <div className="updated-info-container">
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+        <h1>stuff tforsfsdf</h1>
+
+
+      </div>
+      
+      
     </div>
   );
 
