@@ -3,7 +3,8 @@ import "./updated-manga.css";
 import axios from "axios";
 
 const Updated_Manga = () => {
-  const [response, setResponse] = useState(null);
+  const [imageURLs, setImageURLs] = useState(null);
+  const [manga, setManga] = useState(null)
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -18,7 +19,7 @@ const Updated_Manga = () => {
       //     Authorization: import.meta.env.VITE_MANGADEX_TOKEN
       //   },
       // });
-      //     setResponse(resp.data.data.map(manga => manga.attributes.description)); // Save the response data to state
+      //     setImageURLs(resp.data.data.map(manga => manga.attributes.description)); // Save the imageURLs data to state
       //   } catch (err) {
       //     console.error("Error fetching data:", err);
       //     setError(err);
@@ -26,12 +27,14 @@ const Updated_Manga = () => {
 
       const baseURL = "https://api.mangadex.org";
       const uploadBaseURL = "https://uploads.mangadex.org";
-      const chapterID = "588551da-a3b5-4230-98a4-584c3203beda";
+      // const chapterID = "588551da-a3b5-4230-98a4-584c3203beda";
 
       try {
         // Step 1: Fetch the list of manga IDs
 
         const mangaResp = await axios.get(`${baseURL}/manga`);
+
+        setManga(mangaResp.data.data);
 
         const listOfMangaID = mangaResp.data.data.map((manga) => manga.id);
 
@@ -80,8 +83,8 @@ const Updated_Manga = () => {
           })
         );
 
-        // Step 4: Set the response with the fetched manga covers
-        setResponse(mangaCovers.filter((cover) => cover !== null)); // Filter out null values
+        // Step 4: Set the imageURLs with the fetched manga covers
+        setImageURLs(mangaCovers.filter((cover) => cover !== null)); // Filter out null values
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(err);
@@ -95,7 +98,7 @@ const Updated_Manga = () => {
     return <div>Error: {error.message}</div>;
   }
 
-  if (!response) {
+  if (!imageURLs) {
     return <div>Loading...</div>;
   }
 
@@ -103,9 +106,11 @@ const Updated_Manga = () => {
     <div>
       <h1>Updated Manga</h1>
       <div className="updated-info-container">
-        {response.map((src, index) => (
+        {imageURLs.map((src, index) => (
           <div className="manga">
+            
             {src ? <img key={index} src={src} alt={`Manga ${index + 1}`} /> : null}
+            <h4>{manga[index].attributes.title.en}</h4>
           </div>
         ))}
       </div>

@@ -1,8 +1,16 @@
 .updated-info-container{
     width: 90%;
     overflow-y: scroll;
+    
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+
 }
 
 .updated-info-container::-webkit-scrollbar{
     display: none;
+}
+
+.manga{
+
 }
