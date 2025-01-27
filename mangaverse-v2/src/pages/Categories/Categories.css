@@ -1,5 +1,31 @@
-.grid-container{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-
-}
+.grid-container {
+    display: grid; /* Enables grid layout */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsive grid */
+    gap: 10px; /* Space between items */
+    padding: 20px; /* Add some padding around the container */
+    background-color: #f9f9f9; /* Light background color */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  }
+  
+  .grid-container p {
+    margin: 0; /* Remove default margin */
+    padding: 10px; /* Space inside each category */
+    text-align: center; /* Center text */
+    font-size: 16px; /* Adjust font size */
+    font-weight: 500; /* Slightly bold text */
+    color: #333; /* Dark gray text color */
+    background-color: #fff; /* White background for items */
+    border-radius: 6px; /* Rounded corners for items */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for items */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: all 0.3s ease; /* Smooth hover effects */
+  }
+  
+  .grid-container p:hover {
+    background-color: #4caf50; /* Green background on hover */
+    color: white; /* White text on hover */
+    transform: translateY(-4px); /* Slight lift effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+  }
+  
