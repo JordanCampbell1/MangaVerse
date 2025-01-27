@@ -19,7 +19,7 @@ const Manga_Details = ({ id, imageURL }) => {
           // Fetch by ID if provided
           mangaResp = await axios.get(`${baseURL}/manga/${id}`);
         } else {
-          // Handle case where neither ID nor title is provided
+          // Handle case where ID is not provided
           setError("Please provide either ID for manga.");
         }
         setManga(mangaResp.data.data);
