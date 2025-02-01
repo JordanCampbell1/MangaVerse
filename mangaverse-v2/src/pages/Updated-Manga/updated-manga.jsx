@@ -9,25 +9,9 @@ const Updated_Manga = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      //   const title = "Kanojyo to Himitsu to Koimoyou";
-      //   const baseUrl = "https://api.mangadex.org";
-
-      //   try {
-      // const resp = await axios.get(`${baseUrl}/manga`, {
-      //   params: { title: title },
-      //   headers: {
-      //     Authorization: import.meta.env.VITE_MANGADEX_TOKEN
-      //   },
-      // });
-      //     setImageURLs(resp.data.data.map(manga => manga.attributes.description)); // Save the imageURLs data to state
-      //   } catch (err) {
-      //     console.error("Error fetching data:", err);
-      //     setError(err);
-      //   }
 
       const baseURL = "https://api.mangadex.org";
       const uploadBaseURL = "https://uploads.mangadex.org";
-      // const chapterID = "588551da-a3b5-4230-98a4-584c3203beda";
 
       try {
         // Step 1: Fetch the list of manga IDs
@@ -37,10 +21,6 @@ const Updated_Manga = () => {
         setManga(mangaResp.data.data);
 
         const listOfMangaID = mangaResp.data.data.map((manga) => manga.id);
-
-        // const listofChaptersForEachManga = listOfMangaID.map( async mangaID => {
-        //   await axios.get(`${baseURL}/manga/${mangaID}/feed`)
-        // })
 
         // Step 2: Fetch manga details with cover art for each manga ID
         const mangasWithFileName = await Promise.all(
@@ -117,16 +97,6 @@ const Updated_Manga = () => {
     </div>
   );
 
-  // return (
-  //   <>
-  //     <h1>Latest Releases</h1>
-  //     <div className="manga-container">
-  //       <img src="" alt="manga-image" />
-  //       <h4>Title of Manga</h4>
-  //       <h4>author of manga</h4>
-  //     </div>
-  //   </>
-  // );
 };
 
 export default Updated_Manga;
