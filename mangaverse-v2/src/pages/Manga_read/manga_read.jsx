@@ -2,10 +2,14 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import { useState, useEffect } from "react";
 
-const manga_read = ({ mangaID }) => {
+const Manga_Read = ({ mangaID, chapterNumber }) => {
   const [manga, setManga] = useState(null);
   const [chapters, setChapters] = useState(null);
+  const [chapterImages, setChapterImages] = useState(null);
   const [error, setError] = useState(null);
+
+  mangaID = "523ac7ed-0b24-4598-b440-814d8bdcf540";
+  chapterNumber = 1;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -15,11 +19,14 @@ const manga_read = ({ mangaID }) => {
       try {
         let mangaResp = null;
 
-        if (id) {
+        if (mangaID) {
           // Fetch by ID if provided
-          mangaResp = await axios.get(`${baseURL}/manga/${id}`);
+          //Fetch manga details
+          mangaResp = await axios.get(`${baseURL}/manga/${mangaID}`);
+          setManga(mangaResp.data.data);
 
-          let chapters = await axios.get(`${baseURL}/manga/${id}/feed`);
+          //fetch manga chapters
+          let chapters = await axios.get(`${baseURL}/manga/${mangaID}/feed`);
 
           chapters = chapters.data.data;
 
@@ -29,11 +36,39 @@ const manga_read = ({ mangaID }) => {
           );
 
           setChapters(chapters);
+
+          const chapterID = chapters[0].id;
+
+          //fetch pages for a chapter
+          const chapterPages = await axios.get(
+            `${baseURL}/at-home/server/${chapterID}`
+          );
+
+          const chapterPagesImagesList = chapterPages.data.chapter.data;
+
+          const chapterPagesImagesHash = chapterPages.data.chapter.hash;
+
+          const chapterPagesActualImages = await Promise.all(
+            chapterPagesImagesList.map(async (chapterPagesImage) => {
+              const response = await axios.get(
+                `${uploadBaseURL}/data/${chapterPagesImagesHash}/${chapterPagesImage}`,
+                { responseType: "arraybuffer" } // Fetch as binary data
+              );
+
+              // console.log(response)
+
+              // Convert the binary response to a Blob URL
+              const blob = new Blob([response.data], { type: "image/jpeg" });
+              return URL.createObjectURL(blob); // Return the Blob URL
+            })
+          );
+      
+          // console.log(chapterPagesActualImages)
+          setChapterImages(chapterPagesActualImages);
         } else {
           // Handle case where ID is not provided
           setError("Please provide either ID for manga.");
         }
-        setManga(mangaResp.data.data);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(err);
@@ -47,21 +82,40 @@ const manga_read = ({ mangaID }) => {
     return <div>{`Error: ${error}`}</div>;
   }
 
-  if (!manga) {
+  // console.log(chapterImages)
+
+  if (!manga || !chapterImages?.length || !chapters?.length) {
     return <div>Loading...</div>;
   }
-
+  
   return (
     <>
-      <h1>{`${manga.attributes.title.en} - Chapter ###`}</h1>
-      <div>{chapters}</div>
+      <h1>{`${manga.attributes.title.en} - Chapter ${chapterNumber}`}</h1>
+      <div>
+        {/* {chapters.map((chapter) => {
+          // console.log(chapter.attributes.chapter);
+          return (
+            <div
+              key={chapter.id}
+            >{`Chapter - ${chapter.attributes.chapter}`}</div>
+          );
+        })} */}
+
+        {chapterImages.map(
+          (chapterImage, index) =>
+            chapterImage && (
+              <img key={index} src={chapterImage} alt={`Image - ${index}`} />
+            )
+        )}
+      </div>
       <div className="pages-holder"></div>
     </>
   );
 };
 
-manga_read.PropTypes = {
+Manga_Read.propTypes = {
   mangaID: PropTypes.string,
+  chapterNumber: PropTypes.number,
 };
 
-export default manga_read;
+export default Manga_Read;
