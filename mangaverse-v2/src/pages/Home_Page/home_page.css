@@ -11,6 +11,6 @@
     display: none;
 }
 
-.manga{
-
+.manga :hover{
+cursor: pointer;
 }

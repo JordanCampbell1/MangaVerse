@@ -3,13 +3,18 @@ import "./manga_details.css";
 import axios from "axios";
 import PropTypes from "prop-types";
 import mangaRequest from "../../API/manga";
+import { useLocation } from "react-router";
 
 const Manga_Details = ({ id, imageURL }) => {
   const [manga, setManga] = useState(null);
   const [error, setError] = useState(null);
   const [chapters, setChapters] = useState(null);
 
-  id = "a460ab18-22c1-47eb-a08a-9ee85fe37ec8";
+  const location = useLocation();
+
+
+  id = location.state?.id;
+  imageURL = location.state?.imageURL;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,7 +68,7 @@ const Manga_Details = ({ id, imageURL }) => {
     <div className="container">
       <div className="small-details">
         <h2>{manga.attributes.title.en}</h2>
-        {/* <img src={imageURL} alt="manga-pic-icon" /> */}
+        <img src={imageURL} alt="manga-pic-icon" />
         <p>{`Year Created: ${manga.attributes.year}`}</p>
       </div>
       <p>{manga.attributes.description.en}</p>

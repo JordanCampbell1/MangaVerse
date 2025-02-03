@@ -1,15 +1,26 @@
 import { useEffect, useState } from "react";
 import "./home_page.css";
 import axios from "axios";
+import { useNavigate } from "react-router";
+
 
 const Home_Page = () => {
   const [imageURLs, setImageURLs] = useState(null);
-  const [manga, setManga] = useState(null)
+  const [manga, setManga] = useState(null);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+
+
+  const goToMangaDetails = (id, imageURL) => {
+
+    const mangaData = { id: id, imageURL: imageURL, };
+
+    navigate("/manga-details", { state: mangaData });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
-
       const baseURL = "https://api.mangadex.org";
       const uploadBaseURL = "https://uploads.mangadex.org";
 
@@ -87,16 +98,16 @@ const Home_Page = () => {
       <h1>Home</h1>
       <div className="updated-info-container">
         {imageURLs.map((src, index) => (
-          <div className="manga">
-            
-            {src ? <img key={index} src={src} alt={`Manga ${index + 1}`} /> : null}
+          <div className="manga" onClick={() => goToMangaDetails(manga[index].id, src)}>
+            {src ? (
+              <img key={index} src={src} alt={`Manga ${index + 1}`} />
+            ) : null}
             <h4>{manga[index].attributes.title.en}</h4>
           </div>
         ))}
       </div>
     </div>
   );
-
 };
 
 export default Home_Page;
