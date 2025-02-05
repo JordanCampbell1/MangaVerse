@@ -3,7 +3,7 @@ import "./manga_details.css";
 import axios from "axios";
 import PropTypes from "prop-types";
 import mangaRequest from "../../API/manga";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 const Manga_Details = ({ id, imageURL }) => {
   const [manga, setManga] = useState(null);
@@ -12,9 +12,16 @@ const Manga_Details = ({ id, imageURL }) => {
 
   const location = useLocation();
 
-
   id = location.state?.id;
   imageURL = location.state?.imageURL;
+
+  const navigate = useNavigate();
+
+  const goToMangaRead = (mangaID, chapterIndex) => {
+    const manga_details = { mangaID: mangaID, chapterIndex: chapterIndex };
+
+    navigate("/manga-read", { state: manga_details });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,11 +89,12 @@ const Manga_Details = ({ id, imageURL }) => {
       </span>
       <h2>Chapters:</h2>
       <div>
-        {chapters.map((chapter) => {
+        {chapters.map((chapter, index) => {
           // console.log(chapter.attributes.chapter);
           return (
-            <div 
+            <div className="chapter-element"
               key={chapter.id}
+              onClick={() => goToMangaRead(manga.id, index)}
             >{`Chapter - ${chapter.attributes.chapter}`}</div>
           );
         })}

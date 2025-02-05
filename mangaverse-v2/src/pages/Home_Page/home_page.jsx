@@ -43,12 +43,12 @@ const Home_Page = () => {
               }
             );
 
-            console.log("this is manga details data:", mangaDetails.data);
+            // console.log("this is manga details data:", mangaDetails.data);
             const coverArt = mangaDetails.data.data.relationships?.find(
               (rel) => rel.type === "cover_art"
             );
 
-            console.log("this is coverart: ", coverArt);
+            // console.log("this is coverart: ", coverArt);
             return {
               id: mangaID,
               fileName: coverArt?.attributes?.fileName, // Safely access fileName
@@ -56,7 +56,7 @@ const Home_Page = () => {
           })
         );
 
-        console.log("this is  mangawith filename data: ", mangasWithFileName);
+        // console.log("this is  mangawith filename data: ", mangasWithFileName);
 
         // Step 3: Fetch the cover images using the file names
         const mangaCovers = await Promise.all(
@@ -98,7 +98,7 @@ const Home_Page = () => {
       <h1>Home</h1>
       <div className="updated-info-container">
         {imageURLs.map((src, index) => (
-          <div className="manga" onClick={() => goToMangaDetails(manga[index].id, src)}>
+          <div key={index} className="manga" onClick={() => goToMangaDetails(manga[index].id, src)}>
             {src ? (
               <img key={index} src={src} alt={`Manga ${index + 1}`} />
             ) : null}

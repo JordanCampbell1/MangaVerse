@@ -1,15 +1,20 @@
 import PropTypes from "prop-types";
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router";
 
-const Manga_Read = ({ mangaID, chapterNumber }) => {
+const Manga_Read = ({ mangaID, chapterIndex }) => {
   const [manga, setManga] = useState(null);
   const [chapters, setChapters] = useState(null);
   const [chapterImages, setChapterImages] = useState(null);
   const [error, setError] = useState(null);
 
-  mangaID = "523ac7ed-0b24-4598-b440-814d8bdcf540";
-  chapterNumber = 1;
+  const location = useLocation()
+
+
+
+  mangaID = location.state?.mangaID;
+  chapterIndex = location.state?.chapterIndex;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +42,7 @@ const Manga_Read = ({ mangaID, chapterNumber }) => {
 
           setChapters(chapters);
 
-          const chapterID = chapters[0].id;
+          const chapterID = chapters[chapterIndex].id;
 
           //fetch pages for a chapter
           const chapterPages = await axios.get(
@@ -90,7 +95,7 @@ const Manga_Read = ({ mangaID, chapterNumber }) => {
   
   return (
     <>
-      <h1>{`${manga.attributes.title.en} - Chapter ${chapterNumber}`}</h1>
+      <h1>{`${manga.attributes.title.en} - Chapter ${chapterIndex + 1}`}</h1>
       <div>
         {/* {chapters.map((chapter) => {
           // console.log(chapter.attributes.chapter);
@@ -115,7 +120,7 @@ const Manga_Read = ({ mangaID, chapterNumber }) => {
 
 Manga_Read.propTypes = {
   mangaID: PropTypes.string,
-  chapterNumber: PropTypes.number,
+  chapterIndex: PropTypes.number,
 };
 
 export default Manga_Read;
