@@ -4,3 +4,4 @@
 2. redo routing for pages to avoid using a tags - create base page and use outlet then do nested routing
 3. look into accomodating slower networks and bette ruser experience by fetching page by page and siplaying them as they arrive
 4. for slow internet fetch the lower quality images
+5. data saver option for slow internet users
