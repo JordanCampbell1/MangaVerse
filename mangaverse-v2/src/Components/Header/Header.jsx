@@ -1,6 +1,31 @@
+import { useState } from "react";
 import "./Header.css";
+import DOMPurify from 'dompurify';
+import axios from "axios";
 
 const Header = () => {
+
+  const [query, setQuery] = useState("");
+
+  const handleChange = (e) => {
+    const sanitizedQuery = DOMPurify.sanitize(e.target.value)
+    setQuery(sanitizedQuery)
+  }
+
+  const baseURL = "https://api.mangadex.org";
+
+// to naviagate to mnaga details page or mnaga search results page 
+// requieres router so a refacotor for how the base page and 
+// changing div works with router is required
+
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   if(query.trim().length > 2){
+  //     axios.get(`${baseURL}`)
+  //   }
+  // }
+
+
   return (
     <header>
       <div className="header-container">
@@ -14,6 +39,7 @@ const Header = () => {
             name="manga-search"
             id="manga-search"
             placeholder="Search..."
+            maxLength={100}
           />
           <button type="submit">Search</button>
         </span>
