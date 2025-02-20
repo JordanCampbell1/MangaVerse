@@ -1,5 +1,7 @@
 import "./App.css";
+
 import Header from "./Components/Header/Header";
+
 import Updated_Manga from "./pages/Updated-Manga/updated-manga";
 import Manga_Details from "./pages/Manga_Details/manga_details";
 import Categories from "./pages/Categories/Categories";
@@ -8,49 +10,27 @@ import Home_Page from "./pages/Home_Page/home_page.jsx";
 
 import Error_page from "./pages/Error_Page/error_page.jsx";
 
-import { createBrowserRouter, RouterProvider } from "react-router";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Home_Page />,
-    errorElement: <Error_page />,
-    index: true,
-  },
-  {
-    path: "/manga-details",
-    element: <Manga_Details />,
-  },
-  {
-    path: "/manga-read",
-    element: <Manga_Read />,
-  },
-  {
-    path: "/categories",
-    element: <Categories />,
-  },
-  {
-    path: "/updated-manga",
-    element: <Updated_Manga />,
-  },
-  {
-    path: "*",
-    element: <Error_page />, // This catches unmatched routes
-  },
-]);
+import { BrowserRouter as Router, Routes, Route } from "react-router";
 
 function App() {
   return (
-    <>
+    <Router>
       <div className="background">
         <Header />
         <div className="layout">
           <div className="whitebox">
-            <RouterProvider router={router} />
+            <Routes>
+              <Route path="/" element={<Home_Page />} />
+              <Route path="/manga-details" element={<Manga_Details />} />
+              <Route path="/manga-read" element={<Manga_Read />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/updated-manga" element={<Updated_Manga />} />
+              <Route path="*" element={<Error_page />} />
+            </Routes>
           </div>
         </div>
       </div>
-    </>
+    </Router>
   );
 }
 

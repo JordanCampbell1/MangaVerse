@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./Header.css";
 import DOMPurify from 'dompurify';
 import axios from "axios";
+import { Link } from "react-router";
 
 const Header = () => {
 
@@ -30,9 +31,9 @@ const Header = () => {
     <header>
       <div className="header-container">
         <img src="/images/icon2-wbg.png" alt="manga web icon" />
-        <a href="/"><h3>Home</h3></a>
-        <a href="/categories"><h3>Categories</h3></a>
-        <a href="/updated-manga"><h3>Updated Manga</h3></a>
+        <Link to="/"><h3>Home</h3></Link>
+        <Link to="/categories"><h3>Categories</h3></Link>
+        <Link to="/updated-manga"><h3>Updated Manga</h3></Link>
         <span>
           <input
             type="search"
