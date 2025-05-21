@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router";
-import "./manga_read.css"; // Optional: add custom tweaks if needed
+import { useLocation, useNavigate } from "react-router";
+import "./manga_read.css";
 
 const Manga_Read = () => {
   const [manga, setManga] = useState(null);
@@ -10,10 +10,13 @@ const Manga_Read = () => {
   const [chapterImages, setChapterImages] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [readerMode, setReaderMode] = useState(false); // Reader mode toggle
 
   const location = useLocation();
+  const navigate = useNavigate();
+
   const mangaID = location.state?.mangaID;
-  const chapterIndex = location.state?.chapterIndex;
+  const [chapterIndex, setChapterIndex] = useState(location.state?.chapterIndex || 0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,16 +24,15 @@ const Manga_Read = () => {
       const uploadBaseURL = "https://uploads.mangadex.org";
 
       try {
+        setLoading(true);
         if (!mangaID) {
           setError("Manga ID not provided.");
           return;
         }
 
-        // Fetch manga details
         const mangaResp = await axios.get(`${baseURL}/manga/${mangaID}`);
         setManga(mangaResp.data.data);
 
-        // Fetch chapters
         const chaptersResp = await axios.get(`${baseURL}/manga/${mangaID}/feed`);
         let sortedChapters = chaptersResp.data.data.filter(ch =>
           !isNaN(parseFloat(ch.attributes.chapter))
@@ -44,11 +46,9 @@ const Manga_Read = () => {
 
         const chapterID = sortedChapters[chapterIndex].id;
 
-        // Fetch chapter images metadata
         const chapterData = await axios.get(`${baseURL}/at-home/server/${chapterID}`);
         const { hash, data: imageFilenames } = chapterData.data.chapter;
 
-        // Build image URLs
         const imageUrls = imageFilenames.map(filename =>
           `${uploadBaseURL}/data/${hash}/${filename}`
         );
@@ -65,6 +65,18 @@ const Manga_Read = () => {
     fetchData();
   }, [mangaID, chapterIndex]);
 
+  const handlePrevious = () => {
+    if (chapterIndex > 0) {
+      setChapterIndex(prev => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (chapterIndex < chapters.length - 1) {
+      setChapterIndex(prev => prev + 1);
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
@@ -78,19 +90,44 @@ const Manga_Read = () => {
   }
 
   return (
-    <div className="container py-4">
-      <h2 className="text-center mb-4">
-        {manga?.attributes?.title?.en || "Manga"} - Chapter{" "}
-        {chapters[chapterIndex]?.attributes?.chapter}
-      </h2>
+    <div className={`container-fluid py-4 ${readerMode ? "reader-mode" : ""}`}>
+      {!readerMode && (
+        <h2 className="text-center mb-4">
+          {manga?.attributes?.title?.en || "Manga"} - Chapter{" "}
+          {chapters[chapterIndex]?.attributes?.chapter}
+        </h2>
+      )}
+
+      <div className="text-center mb-3">
+        <button
+          className="btn btn-outline-primary mx-2"
+          onClick={handlePrevious}
+          disabled={chapterIndex === 0}
+        >
+          ← Previous
+        </button>
+        <button
+          className="btn btn-outline-primary mx-2"
+          onClick={handleNext}
+          disabled={chapterIndex === chapters.length - 1}
+        >
+          Next →
+        </button>
+        <button
+          className={`btn mx-2 ${readerMode ? "btn-dark" : "btn-secondary"}`}
+          onClick={() => setReaderMode(prev => !prev)}
+        >
+          {readerMode ? "Exit Reader Mode" : "Reader Mode"}
+        </button>
+      </div>
 
       <div className="row justify-content-center">
         {chapterImages.map((src, index) => (
-          <div className="col-lg-8 col-md-10 col-sm-12 mb-4" key={index}>
+          <div className={`mb-4 ${readerMode ? "col-12 px-0" : "col-lg-8 col-md-10 col-sm-12"}`} key={index}>
             <img
               src={src}
               alt={`Page ${index + 1}`}
-              className="img-fluid rounded shadow-sm"
+              className={`img-fluid ${readerMode ? "w-100" : "rounded shadow-sm"}`}
               loading="lazy"
             />
           </div>

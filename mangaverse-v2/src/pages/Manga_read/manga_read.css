@@ -1,3 +1,17 @@
 img {
   transition: opacity 0.3s ease-in-out;
 }
+
+/* Reader mode override */
+.reader-mode {
+  background-color: #000;
+  color: #fff;
+}
+
+.reader-mode img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+  background: #000;
+}
