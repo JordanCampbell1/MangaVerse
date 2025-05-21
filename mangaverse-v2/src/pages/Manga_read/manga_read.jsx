@@ -2,19 +2,18 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router";
+import "./manga_read.css"; // Optional: add custom tweaks if needed
 
-const Manga_Read = ({ mangaID, chapterIndex }) => {
+const Manga_Read = () => {
   const [manga, setManga] = useState(null);
-  const [chapters, setChapters] = useState(null);
-  const [chapterImages, setChapterImages] = useState(null);
+  const [chapters, setChapters] = useState([]);
+  const [chapterImages, setChapterImages] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const location = useLocation()
-
-
-
-  mangaID = location.state?.mangaID;
-  chapterIndex = location.state?.chapterIndex;
+  const location = useLocation();
+  const mangaID = location.state?.mangaID;
+  const chapterIndex = location.state?.chapterIndex;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,99 +21,82 @@ const Manga_Read = ({ mangaID, chapterIndex }) => {
       const uploadBaseURL = "https://uploads.mangadex.org";
 
       try {
-        let mangaResp = null;
-
-        if (mangaID) {
-          // Fetch by ID if provided
-          //Fetch manga details
-          mangaResp = await axios.get(`${baseURL}/manga/${mangaID}`);
-          setManga(mangaResp.data.data);
-
-          //fetch manga chapters
-          let chapters = await axios.get(`${baseURL}/manga/${mangaID}/feed`);
-
-          chapters = chapters.data.data;
-
-          chapters.sort(
-            (a, b) =>
-              parseInt(a.attributes.chapter) - parseInt(b.attributes.chapter)
-          );
-
-          setChapters(chapters);
-
-          const chapterID = chapters[chapterIndex].id;
-
-          //fetch pages for a chapter
-          const chapterPages = await axios.get(
-            `${baseURL}/at-home/server/${chapterID}`
-          );
-
-          const chapterPagesImagesList = chapterPages.data.chapter.data;
-
-          const chapterPagesImagesHash = chapterPages.data.chapter.hash;
-
-          const chapterPagesActualImages = await Promise.all(
-            chapterPagesImagesList.map(async (chapterPagesImage) => {
-              const response = await axios.get(
-                `${uploadBaseURL}/data/${chapterPagesImagesHash}/${chapterPagesImage}`,
-                { responseType: "arraybuffer" } // Fetch as binary data
-              );
-
-              // console.log(response)
-
-              // Convert the binary response to a Blob URL
-              const blob = new Blob([response.data], { type: "image/jpeg" });
-              return URL.createObjectURL(blob); // Return the Blob URL
-            })
-          );
-      
-          // console.log(chapterPagesActualImages)
-          setChapterImages(chapterPagesActualImages);
-        } else {
-          // Handle case where ID is not provided
-          setError("Please provide either ID for manga.");
+        if (!mangaID) {
+          setError("Manga ID not provided.");
+          return;
         }
+
+        // Fetch manga details
+        const mangaResp = await axios.get(`${baseURL}/manga/${mangaID}`);
+        setManga(mangaResp.data.data);
+
+        // Fetch chapters
+        const chaptersResp = await axios.get(`${baseURL}/manga/${mangaID}/feed`);
+        let sortedChapters = chaptersResp.data.data.filter(ch =>
+          !isNaN(parseFloat(ch.attributes.chapter))
+        );
+
+        sortedChapters.sort(
+          (a, b) => parseFloat(a.attributes.chapter) - parseFloat(b.attributes.chapter)
+        );
+
+        setChapters(sortedChapters);
+
+        const chapterID = sortedChapters[chapterIndex].id;
+
+        // Fetch chapter images metadata
+        const chapterData = await axios.get(`${baseURL}/at-home/server/${chapterID}`);
+        const { hash, data: imageFilenames } = chapterData.data.chapter;
+
+        // Build image URLs
+        const imageUrls = imageFilenames.map(filename =>
+          `${uploadBaseURL}/data/${hash}/${filename}`
+        );
+
+        setChapterImages(imageUrls);
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err);
+        console.error("Error loading manga:", err);
+        setError("Failed to load manga chapter.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchData(); // Call the async function
-  }, []);
+    fetchData();
+  }, [mangaID, chapterIndex]);
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status" />
+      </div>
+    );
+  }
 
   if (error) {
-    return <div>{`Error: ${error}`}</div>;
+    return <div className="alert alert-danger mt-3 text-center">{error}</div>;
   }
 
-  // console.log(chapterImages)
-
-  if (!manga || !chapterImages?.length || !chapters?.length) {
-    return <div>Loading...</div>;
-  }
-  
   return (
-    <>
-      <h1>{`${manga.attributes.title.en} - Chapter ${chapters[chapterIndex].attributes.chapter}`}</h1>
-      <div>
-        {/* {chapters.map((chapter) => {
-          // console.log(chapter.attributes.chapter);
-          return (
-            <div
-              key={chapter.id}
-            >{`Chapter - ${chapter.attributes.chapter}`}</div>
-          );
-        })} */}
+    <div className="container py-4">
+      <h2 className="text-center mb-4">
+        {manga?.attributes?.title?.en || "Manga"} - Chapter{" "}
+        {chapters[chapterIndex]?.attributes?.chapter}
+      </h2>
 
-        {chapterImages.map(
-          (chapterImage, index) =>
-            chapterImage && (
-              <img key={index} src={chapterImage} alt={`Image - ${index}`} />
-            )
-        )}
+      <div className="row justify-content-center">
+        {chapterImages.map((src, index) => (
+          <div className="col-lg-8 col-md-10 col-sm-12 mb-4" key={index}>
+            <img
+              src={src}
+              alt={`Page ${index + 1}`}
+              className="img-fluid rounded shadow-sm"
+              loading="lazy"
+            />
+          </div>
+        ))}
       </div>
-      <div className="pages-holder"></div>
-    </>
+    </div>
   );
 };
 
