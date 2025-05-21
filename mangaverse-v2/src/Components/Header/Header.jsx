@@ -1,48 +1,54 @@
 import { useState } from "react";
 import "./Header.css";
-import DOMPurify from 'dompurify';
-import axios from "axios";
-import { Link } from "react-router";
+import DOMPurify from "dompurify";
+import { Link, useNavigate } from "react-router";
 
 const Header = () => {
-
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const sanitizedQuery = DOMPurify.sanitize(e.target.value)
-    setQuery(sanitizedQuery)
-  }
+    const sanitizedQuery = DOMPurify.sanitize(e.target.value);
+    setQuery(sanitizedQuery);
+  };
 
-  const baseURL = "https://api.mangadex.org";
-
-// to naviagate to mnaga details page or mnaga search results page 
-// requieres router so a refacotor for how the base page and 
-// changing div works with router is required
-
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   if(query.trim().length > 2){
-  //     axios.get(`${baseURL}`)
-  //   }
-  // }
-
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (query.trim().length > 2) {
+      // Navigate to search page with query in URL
+      navigate(`/search?title=${encodeURIComponent(query.trim())}`);
+    }
+  };
 
   return (
     <header>
       <div className="header-container">
-        <img src="/images/icon2-wbg.png" alt="manga web icon" />
-        <Link to="/"><h3>Home</h3></Link>
-        <Link to="/categories"><h3>Categories</h3></Link>
-        <Link to="/updated-manga"><h3>Updated Manga</h3></Link>
+        <Link to="/">
+          <img src="/images/icon2-wbg.png" alt="manga web icon" />
+        </Link>
+        <Link className="header-link" to="/">
+          <h4>Home</h4>
+        </Link>
+        <Link className="header-link" to="/categories">
+          <h4>Categories</h4>
+        </Link>
+        <Link className="header-link" to="/updated-manga">
+          <h4>Updated Manga</h4>
+        </Link>
+
         <span>
-          <input
-            type="search"
-            name="manga-search"
-            id="manga-search"
-            placeholder="Search..."
-            maxLength={100}
-          />
-          <button type="submit">Search</button>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="search"
+              name="manga-search"
+              id="manga-search"
+              placeholder="Search..."
+              maxLength={100}
+              value={query}
+              onChange={handleChange}
+            />
+            <button type="submit">Search</button>
+          </form>
         </span>
       </div>
     </header>

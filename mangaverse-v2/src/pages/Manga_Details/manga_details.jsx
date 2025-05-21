@@ -75,24 +75,34 @@ const Manga_Details = ({ id, imageURL }) => {
     <div className="container">
       <div className="small-details">
         <h2>{manga.attributes.title.en}</h2>
-        <img src={imageURL} alt="manga-pic-icon" />
+        <div>
+          <img src={imageURL} alt="manga-pic-icon" />
+        </div>
         <p>{`Year Created: ${manga.attributes.year}`}</p>
+        <h4 className="description-heading">Description:</h4>
+        <p>{manga.attributes.description.en}</p>
       </div>
-      <p>{manga.attributes.description.en}</p>
-      <span>
-        <h4>{`Genre(s):`}</h4>
-        {manga.attributes.tags
-          ?.filter((tag) => tag.attributes.group === "genre")
-          .map((tag) => (
-            <p key={tag.id}>{tag.attributes.name.en}</p>
-          ))}
-      </span>
-      <h2>Chapters:</h2>
+
       <div>
+        <h4 className="genre-heading">{`Genre(s):`}</h4>
+        <div className="genre">
+          {manga.attributes.tags
+            ?.filter((tag) => tag.attributes.group === "genre")
+            .map((tag) => (
+              <p className="genre-item" key={tag.id}>
+                {tag.attributes.name.en}
+              </p>
+            ))}
+        </div>
+      </div>
+      <h2>Chapters:</h2>
+      <div className="chapters">
+        {chapters.length === 0 && <p>No chapters available</p>}
         {chapters.map((chapter, index) => {
           // console.log(chapter.attributes.chapter);
           return (
-            <div className="chapter-element"
+            <div
+              className="chapter-element"
               key={chapter.id}
               onClick={() => goToMangaRead(manga.id, index)}
             >{`Chapter - ${chapter.attributes.chapter}`}</div>

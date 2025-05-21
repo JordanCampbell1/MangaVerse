@@ -11,6 +11,7 @@ import Home_Page from "./pages/Home_Page/home_page.jsx";
 import Error_page from "./pages/Error_Page/error_page.jsx";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router";
+import SearchPage from "./pages/SearchPage/SearchPage.jsx";
 
 function App() {
   return (
@@ -25,6 +26,8 @@ function App() {
               <Route path="/manga-read" element={<Manga_Read />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/updated-manga" element={<Updated_Manga />} />
+              <Route path="/search" element={<SearchPage />} />
+
               <Route path="*" element={<Error_page />} />
             </Routes>
           </div>

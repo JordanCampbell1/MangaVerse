@@ -19,4 +19,7 @@
   height: 2em;
 }
 
-
+.header-link {
+  text-decoration: none;
+  color: black;
+}
