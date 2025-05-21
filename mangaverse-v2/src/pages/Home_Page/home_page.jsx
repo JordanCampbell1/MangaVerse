@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
-import "./home_page.css";
 import axios from "axios";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router"; 
 
 const Home_Page = () => {
   const [mangaList, setMangaList] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
   const goToMangaDetails = (id, imageURL) => {
-    const mangaData = { id, imageURL };
-    navigate("/manga-details", { state: mangaData });
+    navigate("/manga-details", { state: { id, imageURL } });
   };
 
   useEffect(() => {
@@ -23,7 +22,7 @@ const Home_Page = () => {
         const response = await axios.get(`${baseURL}/manga`, {
           params: {
             "includes[]": "cover_art",
-            limit: 20, // Limit results for faster load
+            limit: 20,
           },
         });
 
@@ -34,7 +33,7 @@ const Home_Page = () => {
 
           const coverURL = coverRel
             ? `${uploadBaseURL}/covers/${manga.id}/${coverRel.attributes.fileName}.256.jpg`
-            : null;
+            : "https://via.placeholder.com/256x350?text=No+Image";
 
           return {
             id: manga.id,
@@ -45,31 +44,54 @@ const Home_Page = () => {
 
         setMangaList(mangaData);
       } catch (err) {
-        console.error("Error fetching manga:", err);
         setError(err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  if (error) return <div>Error: {error.message}</div>;
-  if (mangaList.length === 0) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center mt-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-danger mt-5 text-center">
+        Error: {error.message}
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Home</h1>
-      <div className="updated-info-container">
-        {mangaList.map((manga, index) => (
-          <div
-            key={index}
-            className="manga"
-            onClick={() => goToMangaDetails(manga.id, manga.imageURL)}
-          >
-            {manga.imageURL && (
-              <img src={manga.imageURL} alt={`Manga ${index + 1}`} />
-            )}
-            <h4>{manga.title}</h4>
+    <div className="container mt-4">
+      <h2 className="text-center mb-4">Home</h2>
+      <div className="row">
+        {mangaList.map((manga) => (
+          <div key={manga.id} className="col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div
+              className="card h-100 shadow-sm"
+              style={{ cursor: "pointer" }}
+              onClick={() => goToMangaDetails(manga.id, manga.imageURL)}
+            >
+              <img
+                src={manga.imageURL}
+                className="card-img-top"
+                alt={manga.title}
+                style={{ height: "350px", objectFit: "cover" }}
+              />
+              <div className="card-body">
+                <h5 className="card-title text-center">{manga.title}</h5>
+              </div>
+            </div>
           </div>
         ))}
       </div>

@@ -95,7 +95,7 @@ const Manga_Read = ({ mangaID, chapterIndex }) => {
   
   return (
     <>
-      <h1>{`${manga.attributes.title.en} - Chapter ${chapterIndex + 1}`}</h1>
+      <h1>{`${manga.attributes.title.en} - Chapter ${chapters[chapterIndex].attributes.chapter}`}</h1>
       <div>
         {/* {chapters.map((chapter) => {
           // console.log(chapter.attributes.chapter);

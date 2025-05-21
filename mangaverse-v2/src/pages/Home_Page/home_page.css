@@ -13,3 +13,9 @@
 .manga :hover {
   cursor: pointer;
 }
+
+.card:hover {
+  transform: scale(1.03);
+  transition: transform 0.2s ease-in-out;
+}
+
