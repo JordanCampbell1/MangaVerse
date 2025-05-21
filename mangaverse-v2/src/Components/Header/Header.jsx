@@ -15,6 +15,9 @@ const Header = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (query.trim().length > 2) {
+      // Clear the input field
+      setQuery("");
+
       // Navigate to search page with query in URL
       navigate(`/search?title=${encodeURIComponent(query.trim())}`);
     }
