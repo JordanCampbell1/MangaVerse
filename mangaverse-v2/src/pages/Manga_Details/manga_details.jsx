@@ -39,7 +39,11 @@ const Manga_Details = ({ id, imageURL }) => {
           setManga(mangaResp);
 
           //fetch manga chapters
-          let chapters = await axios.get(`${baseURL}/manga/${id}/feed`);
+          let chapters = await axios.get(`${baseURL}/manga/${id}/feed`, {
+            params: {
+              translatedLanguage: ["en"],
+            }
+          });
 
           chapters = chapters.data.data;
 

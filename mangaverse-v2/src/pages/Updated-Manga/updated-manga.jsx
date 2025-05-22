@@ -1,102 +1,106 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router"; // <-- Add this
 import "./updated-manga.css";
 import axios from "axios";
 
 const Updated_Manga = () => {
-  const [imageURLs, setImageURLs] = useState(null);
-  const [manga, setManga] = useState(null)
+  const [mangaList, setMangaList] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-
+    const fetchUpdatedManga = async () => {
       const baseURL = "https://api.mangadex.org";
       const uploadBaseURL = "https://uploads.mangadex.org";
 
       try {
-        // Step 1: Fetch the list of manga IDs
+        const response = await axios.get(`${baseURL}/manga`, {
+          params: {
+            limit: 20,
+            order: { updatedAt: "desc" },
+            "includes[]": "cover_art",
+          },
+        });
 
-        const mangaResp = await axios.get(`${baseURL}/manga`);
-
-        setManga(mangaResp.data.data);
-
-        const listOfMangaID = mangaResp.data.data.map((manga) => manga.id);
-
-        // Step 2: Fetch manga details with cover art for each manga ID
-        const mangasWithFileName = await Promise.all(
-          listOfMangaID.map(async (mangaID) => {
-            const mangaDetails = await axios.get(
-              `${baseURL}/manga/${mangaID}`,
-              {
-                params: { "includes[]": "cover_art" },
-              }
-            );
-
-            console.log("this is manga details data:", mangaDetails.data);
-            const coverArt = mangaDetails.data.data.relationships?.find(
+        const mangaData = await Promise.all(
+          response.data.data.map(async (manga) => {
+            const coverArt = manga.relationships.find(
               (rel) => rel.type === "cover_art"
             );
 
-            console.log("this is coverart: ", coverArt);
+            let imageUrl = null;
+            if (coverArt?.attributes?.fileName) {
+              imageUrl = `${uploadBaseURL}/covers/${manga.id}/${coverArt.attributes.fileName}.256.jpg`;
+            }
+
             return {
-              id: mangaID,
-              fileName: coverArt?.attributes?.fileName, // Safely access fileName
+              id: manga.id,
+              title: manga.attributes.title.en || "No Title",
+              imageUrl,
             };
           })
         );
 
-        console.log("this is  mangawith filename data: ", mangasWithFileName);
-
-        // Step 3: Fetch the cover images using the file names
-        const mangaCovers = await Promise.all(
-          mangasWithFileName.map(async (manga) => {
-            if (manga.fileName) {
-              const coverImage = await axios.get(
-                `${uploadBaseURL}/covers/${manga.id}/${manga.fileName}.256.jpg`,
-                { responseType: "arraybuffer" }
-              );
-              const blob = new Blob([coverImage.data], { type: "image/jpeg" }); // Adjust MIME type if necessary
-              const imageUrl = URL.createObjectURL(blob);
-              return imageUrl; // This can be used as an `src` in an `<img>` tag
-            }
-            return null; // Handle cases where coverArt is not available
-          })
-        );
-
-        // Step 4: Set the imageURLs with the fetched manga covers
-        setImageURLs(mangaCovers.filter((cover) => cover !== null)); // Filter out null values
+        setMangaList(mangaData);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("Error fetching updated manga:", err);
         setError(err);
       }
     };
 
-    fetchData(); // Call the async function
+    fetchUpdatedManga();
   }, []);
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return (
+      <div className="alert alert-danger mt-4 text-center">
+        Error: {error.message}
+      </div>
+    );
   }
 
-  if (!imageURLs) {
-    return <div>Loading...</div>;
+  if (mangaList.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status" />
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1>Updated Manga</h1>
-      <div className="updated-info-container">
-        {imageURLs.map((src, index) => (
-          <div className="manga">
-            
-            {src ? <img key={index} src={src} alt={`Manga ${index + 1}`} /> : null}
-            <h4>{manga[index].attributes.title.en}</h4>
+    <div className="container py-4">
+      <h2 className="text-center mb-4">Recently Updated Manga</h2>
+      <div className="row">
+        {mangaList.map((manga, index) => (
+          <div className="col-sm-6 col-md-4 col-lg-3 mb-4" key={index}>
+            <div className="card h-100 shadow-sm border-0">
+              {manga.imageUrl ? (
+                <Link
+                  to="/manga-details"
+                  state={{ id: manga.id, imageURL: manga.imageUrl }}
+                >
+                  <img
+                    src={manga.imageUrl}
+                    className="card-img-top"
+                    alt={manga.title}
+                  />
+                </Link>
+              ) : (
+                <div
+                  className="card-img-top bg-secondary text-white d-flex justify-content-center align-items-center"
+                  style={{ height: "300px" }}
+                >
+                  No Cover
+                </div>
+              )}
+              <div className="card-body">
+                <h6 className="card-title text-truncate">{manga.title}</h6>
+              </div>
+            </div>
           </div>
         ))}
       </div>
     </div>
   );
-
 };
 
 export default Updated_Manga;

@@ -33,7 +33,11 @@ const Manga_Read = () => {
         const mangaResp = await axios.get(`${baseURL}/manga/${mangaID}`);
         setManga(mangaResp.data.data);
 
-        const chaptersResp = await axios.get(`${baseURL}/manga/${mangaID}/feed`);
+        const chaptersResp = await axios.get(`${baseURL}/manga/${mangaID}/feed`, {
+          params: {
+            translatedLanguage: ["en"],
+          },
+        });
         let sortedChapters = chaptersResp.data.data.filter(ch =>
           !isNaN(parseFloat(ch.attributes.chapter))
         );
@@ -132,6 +136,25 @@ const Manga_Read = () => {
             />
           </div>
         ))}
+      </div>
+
+      {/* Bottom Navigation Buttons */}
+      <div className="text-center mt-4">
+        <button
+          className="btn btn-outline-primary mx-2"
+          onClick={handlePrevious}
+          disabled={chapterIndex === 0}
+        >
+          ← Previous
+        </button>
+        <button
+          className="btn btn-outline-primary mx-2"
+          onClick={handleNext}
+          disabled={chapterIndex === chapters.length - 1}
+        >
+          Next →
+        </button>
+        
       </div>
     </div>
   );
