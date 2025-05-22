@@ -19,7 +19,9 @@ const SearchPage = () => {
       setError(null);
       try {
         const response = await axios.get("https://api.mangadex.org/manga", {
-          params: { title: query, "includes[]": "cover_art" },
+          params: { title: query, "includes[]": "cover_art",
+            availableTranslatedLanguage: ["en"],
+           },
         });
 
         const formattedResults = await Promise.all(

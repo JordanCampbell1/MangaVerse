@@ -17,6 +17,7 @@ const Updated_Manga = () => {
           params: {
             limit: 20,
             order: { updatedAt: "desc" },
+            availableTranslatedLanguage: ["en"],
             "includes[]": "cover_art",
           },
         });

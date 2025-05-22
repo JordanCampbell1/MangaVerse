@@ -22,6 +22,7 @@ const Home_Page = () => {
         const response = await axios.get(`${baseURL}/manga`, {
           params: {
             "includes[]": "cover_art",
+            availableTranslatedLanguage: ["en"],
             limit: 20,
           },
         });
