@@ -56,6 +56,9 @@ const Header = () => {
           <li className="nav-item">
             <Link className="nav-link" to="/updated-manga">Updated Manga</Link>
           </li>
+          <li>
+            <Link className="nav-link" to="/ai">Manga AI Search</Link>
+          </li>
         </ul>
 
         <form className="d-flex" onSubmit={handleSubmit}>

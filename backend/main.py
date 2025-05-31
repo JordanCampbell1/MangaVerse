@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 import logging
 import uvicorn
 from routers.manga import router as mangaRouter
+from rag_api.routers import router as AIRouter
 from database import engine
 from sqlalchemy import text
 from contextlib import asynccontextmanager
@@ -35,7 +38,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Allow requests from your frontend
+origins = [
+    "http://localhost:5173",  # Vite
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # or ["*"] for all
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 app.include_router(mangaRouter)
+app.include_router(AIRouter)
 
 
 @app.get("/")

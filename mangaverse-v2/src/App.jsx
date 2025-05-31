@@ -12,6 +12,7 @@ import Error_page from "./pages/Error_Page/error_page.jsx";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SearchPage from "./pages/SearchPage/SearchPage.jsx";
+import AI_Query from "./pages/AI_Query/AI_Query.jsx";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/categories" element={<Categories />} />
               <Route path="/updated-manga" element={<Updated_Manga />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/ai" element={<AI_Query />} />
 
               <Route path="*" element={<Error_page />} />
             </Routes>
