@@ -26,14 +26,14 @@ def build_prompt(query: str, results: list[dict]) -> str:
     )
 
     prompt = f"""
-You are a helpful manga recommendation assistant. Use the context below to answer the user's question.
-If the answer is not directly present in the manga descriptions, say you don't have enough information.
+            You are a helpful manga recommendation assistant. Use the context below to answer the user's question.
+            If the answer is not directly present in the manga descriptions, say you don't have enough information.
 
-Context:
-{context}
+            Context:
+            {context}
 
-User Question: {query}
-Answer:"""
+            User Question: {query}
+            Answer:"""
     return prompt.strip()
 
 
