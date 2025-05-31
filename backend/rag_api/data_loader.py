@@ -7,63 +7,79 @@ from main import client, model
 
 collection_name = "manga"
 
-# Check if collection exists and create if not
-if not client.collection_exists(collection_name=collection_name):
-    client.create_collection(
-        collection_name=collection_name,
-        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
-    )
-else:
-    # Optional: clear existing points if you want to reset
+# Create or recreate the collection
+if client.collection_exists(collection_name=collection_name):
     client.delete_collection(collection_name=collection_name)
-    client.create_collection(
-        collection_name=collection_name,
-        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
-    )
 
-# Load from JSON
+client.create_collection(
+    collection_name=collection_name,
+    vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+)
+
+# Load manga data
 with open("manga.json", "r", encoding="utf-8") as f:
     mangas = json.load(f)
 
-descs, ids, titles = [], [], []
+descs, ids, titles, payloads = [], [], [], []
 
-for manga in mangas:
-    desc = manga.get("attributes", {}).get("description", {}).get("en")
-    title = manga.get("attributes", {}).get("title", {}).get("en")
+print("Extracting metadata from manga.json...")
+for manga in tqdm(mangas, desc="Extracting"):
+    attr = manga.get("attributes", {})
+    desc = attr.get("description", {}).get("en")
+    title = attr.get("title", {}).get("en")
+
     if not desc or not title:
         continue
 
-    descs.append(desc)
+    # Alternative titles
+    alt_titles = [list(alt.values())[0] for alt in attr.get("altTitles", []) if alt]
+
+    # Tags: genres, themes, formats
+    tags = [
+        tag["attributes"]["name"]["en"]
+        for tag in attr.get("tags", [])
+        if tag.get("attributes", {}).get("name", {}).get("en")
+    ]
+    tag_str = ", ".join(tags)
+
+    # Metadata
+    payload = {
+        "id": manga["id"],
+        "title": title,
+        "description": desc,
+        "alt_titles": alt_titles,
+        "tags": tags,
+        "tag_str": tag_str,
+        "status": attr.get("status"),
+        "year": attr.get("year"),
+        "original_language": attr.get("originalLanguage"),
+        "publication_demographic": attr.get("publicationDemographic"),
+        "content_rating": attr.get("contentRating"),
+        "url": attr.get("links", {}).get("raw"),
+    }
+
+    # Use enriched content for embedding
+    enriched_input = f"{title}. {', '.join(alt_titles)}. {desc} Tags: {tag_str}."
+    descs.append(enriched_input)
     ids.append(manga["id"])
+    payloads.append(payload)
     titles.append(title)
 
-# Batch encode
-print(f"Encoding {len(descs)} descriptions in batches...")
+# Encode enriched descriptions
+print(f"\nEncoding {len(descs)} manga descriptions...")
 vectors = model.encode(descs, batch_size=32, show_progress_bar=True)
 
+# Build points
+print("Preparing Qdrant points...")
 points = [
-    PointStruct(
-        id=ids[i],
-        vector=vectors[i].tolist(),
-        payload={"title": titles[i], "description": descs[i]},
-    )
-    for i in range(len(ids))
+    PointStruct(id=ids[i], vector=vectors[i].tolist(), payload=payloads[i])
+    for i in tqdm(range(len(ids)), desc="Building Points")
 ]
 
+# Upload to Qdrant
 print(f"Upserting {len(points)} points to Qdrant...")
-client.upsert(collection_name=collection_name, points=points)
-print("Data loading complete.")
-# # Handle potential errors during upsert
-# try:
-#     client.upsert(collection_name=collection_name, points=points)
-# except UnexpectedResponse as e:
-#     print(f"Error during upsert: {e}")
-# # Ensure the collection is ready for use
-# if not client.collection_exists(collection_name=collection_name):
-#     print(f"Collection {collection_name} was not created successfully.")
-# else:
-#     print(f"Collection {collection_name} is ready with {len(points)} points.")
-# # Ensure the collection is ready for use
-# # Ensure the collection is ready for use
-# # Ensure the collection is ready for use
-# # Ensure the collection is ready for use
+try:
+    client.upsert(collection_name=collection_name, points=points)
+    print("✅ Data loading complete.")
+except UnexpectedResponse as e:
+    print(f"❌ Error during upsert: {e}")
