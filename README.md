@@ -6,3 +6,6 @@
 4. for slow internet fetch the lower quality images - done
 5. data saver option for slow internet users - half way
 6. use redux for cache, most liekly for the frequent/popular chapter images bias to the latest chapters
+
+
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121

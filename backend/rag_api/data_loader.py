@@ -3,9 +3,12 @@ import json
 from tqdm import tqdm
 from qdrant_client.http.exceptions import UnexpectedResponse
 
-from main import client, model
+from main import client, model, device
 
 collection_name = "manga"
+
+FILENAME = "mangadex_manga_list.json"
+DIMENSION_SIZE = 384  # Adjust based on the model used => small models like all-MiniLM-L6-v2 use 384, larger ones like e5-large use 1024
 
 # Create or recreate the collection
 if client.collection_exists(collection_name=collection_name):
@@ -13,11 +16,12 @@ if client.collection_exists(collection_name=collection_name):
 
 client.create_collection(
     collection_name=collection_name,
-    vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+    vectors_config=VectorParams(size=DIMENSION_SIZE, distance=Distance.COSINE),
 )
 
+
 # Load manga data
-with open("manga.json", "r", encoding="utf-8") as f:
+with open(FILENAME, "r", encoding="utf-8") as f:
     mangas = json.load(f)
 
 descs, ids, titles, payloads = [], [], [], []
@@ -55,7 +59,7 @@ for manga in tqdm(mangas, desc="Extracting"):
         "original_language": attr.get("originalLanguage"),
         "publication_demographic": attr.get("publicationDemographic"),
         "content_rating": attr.get("contentRating"),
-        "url": attr.get("links", {}).get("raw"),
+        "url": (attr.get("links") or {}).get("raw"),
     }
 
     # Use enriched content for embedding
@@ -66,8 +70,10 @@ for manga in tqdm(mangas, desc="Extracting"):
     titles.append(title)
 
 # Encode enriched descriptions
-print(f"\nEncoding {len(descs)} manga descriptions...")
-vectors = model.encode(descs, batch_size=32, show_progress_bar=True)
+print(f"\nEncoding {len(descs)} manga descriptions on device: {device}...")
+vectors = model.encode(descs, batch_size=32, show_progress_bar=True, device=device)
+print("[INFO] Encoding complete.")
+
 
 # Build points
 print("Preparing Qdrant points...")
@@ -77,9 +83,14 @@ points = [
 ]
 
 # Upload to Qdrant
-print(f"Upserting {len(points)} points to Qdrant...")
+BATCH_SIZE = 500  # Tune this if needed
+
+print(f"Upserting {len(points)} points to Qdrant in batches of {BATCH_SIZE}...")
+
 try:
-    client.upsert(collection_name=collection_name, points=points)
+    for i in tqdm(range(0, len(points), BATCH_SIZE), desc="Uploading Batches"):
+        batch = points[i : i + BATCH_SIZE]
+        client.upsert(collection_name=collection_name, points=batch)
     print("✅ Data loading complete.")
 except UnexpectedResponse as e:
     print(f"❌ Error during upsert: {e}")

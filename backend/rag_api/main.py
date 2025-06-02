@@ -1,12 +1,32 @@
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
+import torch
 
 # Initialize Qdrant and embedding model
 
 client = QdrantClient(host="localhost", port=6999)
 
 # collection = client.get_or_create_collection("manga")
-model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Enable GPU support if available
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+print(f"\n[INFO] CUDA Available: {torch.cuda.is_available()}")
+if device == "cuda":
+    print(
+        f"[INFO] Using GPU: {torch.cuda.get_device_name(torch.cuda.current_device())}"
+    )
+else:
+    print("[INFO] Using CPU")
+
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2", device=device
+)  # This is a lightweight model suitable for many tasks => all-MiniLM-L6-v2
+
+# Print layer devices (for debugging)
+for name, param in model.named_parameters():
+    print(f"[DEBUG] Layer: {name} | Device: {param.device}")
+    break  # Remove break if you want all layers
 
 
 # | Model                                     | Dimension | Why It’s Good for Manga                                                                                                                                 |
