@@ -22,20 +22,33 @@ router = APIRouter(prefix="/api/ai", tags=["RAG API"])
 def build_prompt(query: str, results: list[dict]) -> str:
     context = "\n\n".join(
         [
-            f"Title: {r.payload.get('title')}\nDescription: {r.payload.get('description')}"
-            for r in results
+            f"""Manga #{i+1}
+Title: {r.payload.get('title', 'N/A')}
+Alternative Titles: {', '.join(r.payload.get('alt_titles', [])) or 'N/A'}
+Genres: {', '.join(r.payload.get('tags', [])) or 'N/A'}
+Description: {r.payload.get('description', 'No description available.')}
+"""
+            for i, r in enumerate(results)
         ]
     )
 
     prompt = f"""
-            You are a helpful manga recommendation assistant. Use the context below to answer the user's question.
-            If the answer is not directly present in the manga descriptions, say you don't have enough information.
+You are an expert manga recommendation assistant trained to help users find manga based on preferences, genres, or descriptions.
 
-            Context:
-            {context}
+Use the following list of manga and their metadata to answer the user's question. Rely only on the information provided in the context.
 
-            User Question: {query}
-            Answer:"""
+When referring to a manga in your response:
+- Always use the **main title**, and if any English alternate titles are available, include the most relevant one **in brackets** right after the main title (e.g., *Shingeki no Kyojin [Attack on Titan]*).
+- If no English alternate title is available, just use the main title.
+
+If a direct or inferred answer is not possible based on the provided data, respond with: "I don't have enough information to answer that."
+
+Context:
+{context}
+
+User Question: {query}
+
+Answer:"""
     return prompt.strip()
 
 
