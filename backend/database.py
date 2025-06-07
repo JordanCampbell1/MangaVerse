@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 
-load_dotenv()  # Loads .env from the root of the project
+# load_dotenv()  # Loads .env from the root of the project
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql+asyncpg://manga_user:password@localhost:5432/manga_db"

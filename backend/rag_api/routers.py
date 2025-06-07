@@ -1,3 +1,4 @@
+from .utils.logging_utils import log_prompt
 from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
 
@@ -19,6 +20,8 @@ router = APIRouter(prefix="/api/ai", tags=["RAG API"])
 ###HELPER FUNCTIONS###
 ###
 ###
+
+
 def build_prompt(query: str, results: list[dict]) -> str:
     context = "\n\n".join(
         [
@@ -111,6 +114,9 @@ async def search_manga(
     # Step 3: Build prompt for Ollama from results
     t2 = time.time()
     prompt = build_prompt(query, results)
+
+    log_prompt(prompt, query)
+
     print(f"⏱️ Step 3 (Build prompt): {time.time() - t2:.2f}s")
 
     # Step 4: Get LLM response (streamed, so we only log time taken to prepare it)

@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,6 +12,9 @@ from rag_api.routers import router as AIRouter
 from database import engine
 from sqlalchemy import text
 from contextlib import asynccontextmanager
+
+
+import os
 
 # Configure logging centrally
 logging.basicConfig(
@@ -22,6 +29,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup code here
+
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))

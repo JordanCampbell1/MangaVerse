@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Dict, List, Optional
 import httpx
+import os
 
 
 from database import get_db
@@ -19,8 +20,8 @@ from schemas import (
 
 router = APIRouter(prefix="/api/manga", tags=["mangas"])
 
-BASE_URL = "https://api.mangadex.org"
-UPLOAD_BASE_URL = "https://uploads.mangadex.org"
+BASE_URL = os.getenv("BASE_API_URL", "https://api.mangadex.org")
+UPLOAD_BASE_URL = os.getenv("BASE_API_UPLOAD_URL", "https://uploads.mangadex.org")
 
 
 @router.get("/", response_model=list[MangaBase])

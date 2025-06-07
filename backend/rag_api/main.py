@@ -1,8 +1,12 @@
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 import torch
+import os
 
 # Initialize Qdrant and embedding model
+
+QDRANT_HOST_URL = os.getenv("QDRANT_HOST_URL", "http://localhost:6999")
+QDRANT_PORT = os.getenv("QDRANT_PORT", 6999)
 
 client = QdrantClient(host="localhost", port=6999)
 
