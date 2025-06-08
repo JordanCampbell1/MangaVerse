@@ -92,7 +92,7 @@ async def ollama_stream(prompt: str, model: str = OLLAMA_MODEL):
 
 @router.get("/search")
 async def search_manga(
-    query: str = Query(..., description="User's question about manga"), top_k: int = 5
+    query: str = Query(..., description="User's question about manga"), top_k: int = 15
 ):
     total_start = time.time()
 
