@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router";
-import "./Categories.css"; // Optional: add custom tweaks if needed
+import apiClient from "../../utils/axios"; // ✅ use your configured client
+import "./Categories.css";
 
 const categoryList = [
   "Action",
@@ -20,29 +20,9 @@ const categoryList = [
 
 const Categories = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [tagMap, setTagMap] = useState({});
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // 🔁 Fetch all available tags once on mount
-  useEffect(() => {
-    const fetchTags = async () => {
-      try {
-        const response = await axios.get("https://api.mangadex.org/manga/tag");
-        const mapping = {};
-        response.data.data.forEach((tag) => {
-          const tagName = tag.attributes.name.en.toLowerCase();
-          mapping[tagName] = tag.id;
-        });
-        setTagMap(mapping);
-      } catch (error) {
-        console.error("Failed to fetch tags", error);
-      }
-    };
-
-    fetchTags();
-  }, []);
 
   // ✅ Toggle category selection
   const toggleCategory = (category) => {
@@ -53,26 +33,19 @@ const Categories = () => {
     );
   };
 
-  // 🔍 Fetch manga that matches all selected tags
+  // ✅ Fetch from your backend
   const fetchManga = async () => {
     if (selectedCategories.length === 0) return;
     setLoading(true);
 
     try {
-      const tagIds = selectedCategories
-        .map((category) => tagMap[category.toLowerCase()])
-        .filter(Boolean); // remove undefined if a tag wasn't found
+      const params = new URLSearchParams();
+      selectedCategories.forEach((cat) =>
+        params.append("categories", cat.toLowerCase())
+      );
 
-      const response = await axios.get("https://api.mangadex.org/manga", {
-        params: {
-          includedTags: tagIds,
-          // includedTagsMode: "AND",
-          limit: 12,
-          includes: ["cover_art"]
-        }
-      });
-
-      setResults(response.data.data);
+      const response = await apiClient.get(`/api/manga/filter?${params.toString()}`);
+      setResults(response.data);
     } catch (error) {
       console.error("Error fetching manga", error);
     } finally {
@@ -111,40 +84,29 @@ const Categories = () => {
       </div>
 
       <div className="row">
-        {results.map((manga) => {
-          const title = manga.attributes.title.en || "No Title";
-          const description =
-            manga.attributes.description?.en?.slice(0, 100) ||
-            "No description available";
-          const coverId = manga.relationships.find(
-            (rel) => rel.type === "cover_art"
-          )?.attributes?.fileName;
-
-          const imageUrl = coverId
-            ? `https://uploads.mangadex.org/covers/${manga.id}/${coverId}.256.jpg`
-            : "https://via.placeholder.com/256x350?text=No+Image";
-
-          return (
-            <div className="col-md-4 mb-4" key={manga.id}>
-              <div
-                className="card h-100 shadow-sm cursor-pointer"
-                style={{ cursor: "pointer" }}
-                onClick={() => navigate(`/manga-details`, { state: { id: manga.id, imageURL: imageUrl } })}
-              >
-                <img
-                  src={imageUrl}
-                  alt={title}
-                  className="card-img-top"
-                  style={{ height: "350px", objectFit: "cover" }}
-                />
-                <div className="card-body">
-                  <h5 className="card-title">{title}</h5>
-                  <p className="card-text">{description}</p>
-                </div>
+        {results.map((manga) => (
+          <div className="col-md-4 mb-4" key={manga.id}>
+            <div
+              className="card h-100 shadow-sm"
+              style={{ cursor: "pointer" }}
+              onClick={() =>
+                navigate(`/manga-details`, {
+                  state: { id: manga.id, imageURL: manga.imageURL }
+                })
+              }
+            >
+              <img
+                src={manga.imageURL || "https://via.placeholder.com/256x350?text=No+Image"}
+                alt={manga.title}
+                className="card-img-top"
+                style={{ height: "350px", objectFit: "cover" }}
+              />
+              <div className="card-body">
+                <h5 className="card-title">{manga.title}</h5>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );

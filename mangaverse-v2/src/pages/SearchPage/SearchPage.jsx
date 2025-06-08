@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import axios from "axios";
 import SearchResults from "../../Components/SearchResults/SearchResults";
+import apiClient from "../../utils/axios";
 
 const SearchPage = () => {
   const [results, setResults] = useState([]);
@@ -18,28 +19,14 @@ const SearchPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get("https://api.mangadex.org/manga", {
-          params: { title: query, "includes[]": "cover_art",
-            availableTranslatedLanguage: ["en"],
-           },
+        const response = await apiClient.get("/api/manga/search", {
+          params: { 
+            title: query
+          },
         });
 
-        const formattedResults = await Promise.all(
-          response.data.data.map(async (manga) => {
-            const cover = manga.relationships.find((r) => r.type === "cover_art");
-            const fileName = cover?.attributes?.fileName;
-            return {
-              id: manga.id,
-              title: manga.attributes.title.en || "Untitled",
-              description: manga.attributes.description.en || "",
-              image: fileName
-                ? `https://uploads.mangadex.org/covers/${manga.id}/${fileName}.256.jpg`
-                : "https://via.placeholder.com/256x350?text=No+Image",
-            };
-          })
-        );
-
-        setResults(formattedResults);
+        // The response data is already in the expected format
+        setResults(response.data);
       } catch (err) {
         setError("Failed to load search results.");
       } finally {

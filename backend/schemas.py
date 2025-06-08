@@ -20,6 +20,8 @@ class MangaDetail(BaseModel):
     description: Optional[str]
     imageURL: str
     chapters: List[Chapter]
+    year: Optional[int] = None
+    genres: List[str] = []
 
 
 class ChapterImageResponse(BaseModel):

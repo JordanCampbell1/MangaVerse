@@ -219,6 +219,14 @@ async def fetch_manga_detail(id: str = Query(..., description="MangaDex manga ID
             title = manga["attributes"]["title"].get("en", "Untitled")
             description = manga["attributes"].get("description", {}).get("en")
 
+            # Extract year and genres
+            year = manga["attributes"].get("year")
+            genres = [
+                tag["attributes"]["name"].get("en")
+                for tag in manga["attributes"].get("tags", [])
+                if tag["attributes"].get("group") == "genre"
+            ]
+
             # print(f"Manga: {title}")
             # print(f"Description: {description}")
 
@@ -281,6 +289,8 @@ async def fetch_manga_detail(id: str = Query(..., description="MangaDex manga ID
                 description=description,
                 imageURL=cover_url,
                 chapters=formatted_chapters,
+                year=year,
+                genres=genres,
             )
 
     except httpx.HTTPStatusError as e:

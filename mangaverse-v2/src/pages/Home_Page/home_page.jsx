@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router"; 
+import { useNavigate } from "react-router";
+import apiClient from "../../utils/axios";
 
 const Home_Page = () => {
   const [mangaList, setMangaList] = useState([]);
@@ -15,35 +16,10 @@ const Home_Page = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const baseURL = "https://api.mangadex.org";
-      const uploadBaseURL = "https://uploads.mangadex.org";
-
       try {
-        const response = await axios.get(`${baseURL}/manga`, {
-          params: {
-            "includes[]": "cover_art",
-            availableTranslatedLanguage: ["en"],
-            limit: 20,
-          },
-        });
+        const response = await apiClient.get("/api/manga");
 
-        const mangaData = response.data.data.map((manga) => {
-          const coverRel = manga.relationships.find(
-            (rel) => rel.type === "cover_art"
-          );
-
-          const coverURL = coverRel
-            ? `${uploadBaseURL}/covers/${manga.id}/${coverRel.attributes.fileName}.256.jpg`
-            : "https://via.placeholder.com/256x350?text=No+Image";
-
-          return {
-            id: manga.id,
-            title: manga.attributes.title.en || "Untitled",
-            imageURL: coverURL,
-          };
-        });
-
-        setMangaList(mangaData);
+        setMangaList(response.data);
       } catch (err) {
         setError(err);
       } finally {

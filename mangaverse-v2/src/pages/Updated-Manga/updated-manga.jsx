@@ -9,39 +9,11 @@ const Updated_Manga = () => {
 
   useEffect(() => {
     const fetchUpdatedManga = async () => {
-      const baseURL = "https://api.mangadex.org";
-      const uploadBaseURL = "https://uploads.mangadex.org";
-
       try {
-        const response = await axios.get(`${baseURL}/manga`, {
-          params: {
-            limit: 20,
-            order: { updatedAt: "desc" },
-            availableTranslatedLanguage: ["en"],
-            "includes[]": "cover_art",
-          },
-        });
+        const response = await axios.get("http://localhost:8000/api/manga/latest");
 
-        const mangaData = await Promise.all(
-          response.data.data.map(async (manga) => {
-            const coverArt = manga.relationships.find(
-              (rel) => rel.type === "cover_art"
-            );
-
-            let imageUrl = null;
-            if (coverArt?.attributes?.fileName) {
-              imageUrl = `${uploadBaseURL}/covers/${manga.id}/${coverArt.attributes.fileName}.256.jpg`;
-            }
-
-            return {
-              id: manga.id,
-              title: manga.attributes.title.en || "No Title",
-              imageUrl,
-            };
-          })
-        );
-
-        setMangaList(mangaData);
+        // The response data is already in the expected format
+        setMangaList(response.data);
       } catch (err) {
         console.error("Error fetching updated manga:", err);
         setError(err);
