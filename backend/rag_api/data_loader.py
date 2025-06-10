@@ -1,9 +1,14 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from qdrant_client.http.models import PointStruct, VectorParams, Distance
 import json
 from tqdm import tqdm
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 from main import client, model, device
+
 
 collection_name = "manga"
 

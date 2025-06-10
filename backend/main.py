@@ -13,7 +13,6 @@ from database import engine
 from sqlalchemy import text
 from contextlib import asynccontextmanager
 
-
 import os
 
 # Configure logging centrally
