@@ -63,6 +63,7 @@ app = FastAPI(lifespan=lifespan)
 # Allow requests from your frontend
 origins = [
     "http://localhost:5173",  # Vite
+    "https://manga-verse-2u8lqfwfh-jordancampbell1s-projects.vercel.app/",
 ]
 
 app.add_middleware(
