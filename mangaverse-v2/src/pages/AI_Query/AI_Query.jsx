@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BASE_BACKEND_URL } from "../../utils/constants";
 
 function MangaSearch() {
   const [query, setQuery] = useState("");
@@ -10,7 +11,8 @@ function MangaSearch() {
     setLoading(true);
     setResponseText("");
 
-    const response = await fetch(`http://localhost:8000/api/ai/search?query=${encodeURIComponent(query)}`);
+
+    const response = await fetch(`${BASE_BACKEND_URL}/api/ai/search?query=${encodeURIComponent(query)}`);
     if (!response.body) {
       setLoading(false);
       setResponseText("No response body");
