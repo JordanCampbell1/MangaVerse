@@ -1,10 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Dict, List, Optional
 import httpx
 import os
 
+# Initialize the router
+from app_state import get_async_client
+
+from pyinstrument import Profiler
+
+profiler = Profiler()
 
 from database import get_db
 from schemas import (
@@ -25,18 +31,19 @@ UPLOAD_BASE_URL = os.getenv("BASE_API_UPLOAD_URL", "https://uploads.mangadex.org
 
 
 @router.get("/", response_model=list[MangaBase])
-async def fetch_manga():
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{BASE_URL}/manga",
-            params={
-                "includes[]": "cover_art",
-                "availableTranslatedLanguage[]": "en",
-                "limit": 20,
-            },
-        )
-        response.raise_for_status()
-        manga_list = response.json()["data"]
+async def fetch_manga(async_client: httpx.AsyncClient = Depends(get_async_client)):
+    profiler.start()
+
+    response = await async_client.get(
+        f"{BASE_URL}/manga",
+        params={
+            "includes[]": "cover_art",
+            "availableTranslatedLanguage[]": "en",
+            "limit": 20,
+        },
+    )
+    response.raise_for_status()
+    manga_list = response.json()["data"]
 
     result = []
     for manga in manga_list:
@@ -56,17 +63,18 @@ async def fetch_manga():
             )
         )
 
+    profiler.stop()
+    print(profiler.output_text(unicode=True, color=True))
     return result
 
 
 @router.get("/tags", response_model=Dict[str, str])
-async def fetch_tags():
+async def fetch_tags(async_client: httpx.AsyncClient = Depends(get_async_client)):
     url = "https://api.mangadex.org/manga/tag"
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        tag_data = response.json()["data"]
+    response = await async_client.get(url)
+    response.raise_for_status()
+    tag_data = response.json()["data"]
 
     tag_map = {
         tag["attributes"]["name"]["en"].lower(): tag["id"]
@@ -158,7 +166,10 @@ tag_map = {
 
 
 @router.get("/filter", response_model=List[MangaBase])
-async def fetch_filtered_manga(categories: List[str] = Query(...)):
+async def fetch_filtered_manga(
+    categories: List[str] = Query(...),
+    async_client: httpx.AsyncClient = Depends(get_async_client),
+):
     tag_ids = [
         tag_map.get(category.lower())
         for category in categories
@@ -175,10 +186,9 @@ async def fetch_filtered_manga(categories: List[str] = Query(...)):
         "includes[]": "cover_art",
     }
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, params=params)
-        response.raise_for_status()
-        manga_data = response.json()["data"]
+    response = await async_client.get(url, params=params)
+    response.raise_for_status()
+    manga_data = response.json()["data"]
 
     result = []
     for manga in manga_data:
@@ -198,100 +208,102 @@ async def fetch_filtered_manga(categories: List[str] = Query(...)):
 
 
 @router.get("/detail", response_model=MangaDetail)
-async def fetch_manga_detail(id: str = Query(..., description="MangaDex manga ID")):
+async def fetch_manga_detail(
+    id: str = Query(..., description="MangaDex manga ID"),
+    async_client: httpx.AsyncClient = Depends(get_async_client),
+):
 
     try:
-        async with httpx.AsyncClient() as client:
-            # Fetch manga details
-            manga_resp = await client.get(
-                f"{BASE_URL}/manga/{id}",
-                params={
-                    "includes[]": "cover_art",
-                    "availableTranslatedLanguage[]": "en",
-                },
-            )
-            manga_resp.raise_for_status()
-            manga = manga_resp.json()["data"]
+        # Fetch manga details
+        manga_resp = await async_client.get(
+            f"{BASE_URL}/manga/{id}",
+            params={
+                "includes[]": "cover_art",
+                "availableTranslatedLanguage[]": "en",
+            },
+        )
+        manga_resp.raise_for_status()
+        manga = manga_resp.json()["data"]
 
-            # print(manga)  # Debugging line to check the manga data structure
+        # print(manga)  # Debugging line to check the manga data structure
 
-            # Parse title and description
-            title = manga["attributes"]["title"].get("en", "Untitled")
-            description = manga["attributes"].get("description", {}).get("en")
+        # Parse title and description
+        title = manga["attributes"]["title"].get("en", "Untitled")
+        description = manga["attributes"].get("description", {}).get("en")
 
-            # Extract year and genres
-            year = manga["attributes"].get("year")
-            genres = [
-                tag["attributes"]["name"].get("en")
-                for tag in manga["attributes"].get("tags", [])
-                if tag["attributes"].get("group") == "genre"
-            ]
+        # Extract year and genres
+        year = manga["attributes"].get("year")
+        genres = [
+            tag["attributes"]["name"].get("en")
+            for tag in manga["attributes"].get("tags", [])
+            if tag["attributes"].get("group") == "genre"
+        ]
 
-            # print(f"Manga: {title}")
-            # print(f"Description: {description}")
+        # print(f"Manga: {title}")
+        # print(f"Description: {description}")
 
-            # Find cover image
-            cover_rel = next(
-                (rel for rel in manga["relationships"] if rel["type"] == "cover_art"),
-                None,
-            )
+        # Find cover image
+        cover_rel = next(
+            (rel for rel in manga["relationships"] if rel["type"] == "cover_art"),
+            None,
+        )
 
-            # print(
-            #     f"Cover relationship: {cover_rel}"
-            # )  # Debugging line to check cover relationship
+        # print(
+        #     f"Cover relationship: {cover_rel}"
+        # )  # Debugging line to check cover relationship
 
-            # print(
-            #     f"Cover file name: {cover_rel['attributes']['fileName'] if cover_rel else 'None'}"
-            # )
+        # print(
+        #     f"Cover file name: {cover_rel['attributes']['fileName'] if cover_rel else 'None'}"
+        # )
 
-            cover_url = (
-                f"{UPLOAD_BASE_URL}/covers/{id}/{cover_rel['attributes']['fileName']}.256.jpg"
-                if cover_rel
-                else "https://via.placeholder.com/256x350?text=No+Image"
-            )
+        cover_url = (
+            f"{UPLOAD_BASE_URL}/covers/{id}/{cover_rel['attributes']['fileName']}.256.jpg"
+            if cover_rel
+            else "https://via.placeholder.com/256x350?text=No+Image"
+        )
 
-            # print(f"Cover URL: {cover_url}")  # Debugging line to check the cover URL
+        # print(f"Cover URL: {cover_url}")  # Debugging line to check the cover URL
 
-            # Fetch chapters
-            chapters_resp = await client.get(
-                f"{BASE_URL}/manga/{id}/feed",
-                params={"translatedLanguage[]": "en", "order[chapter]": "asc"},
-            )
-            chapters_resp.raise_for_status()
-            chapter_data = chapters_resp.json()["data"]
+        # Fetch chapters
+        chapters_resp = await async_client.get(
+            f"{BASE_URL}/manga/{id}/feed",
+            params={"translatedLanguage[]": "en", "order[chapter]": "asc"},
+        )
+        chapters_resp.raise_for_status()
+        chapter_data = chapters_resp.json()["data"]
 
-            # print(chapter_data)  # Debugging line to check the chapter data structure
+        # print(chapter_data)  # Debugging line to check the chapter data structure
 
-            # Sort and format chapters
-            formatted_chapters = []
-            for chapter in chapter_data:
-                attrs = chapter["attributes"]
-                formatted_chapters.append(
-                    Chapter(
-                        id=chapter["id"],
-                        chapter=attrs.get("chapter"),
-                        title=attrs.get("title"),
-                    )
+        # Sort and format chapters
+        formatted_chapters = []
+        for chapter in chapter_data:
+            attrs = chapter["attributes"]
+            formatted_chapters.append(
+                Chapter(
+                    id=chapter["id"],
+                    chapter=attrs.get("chapter"),
+                    title=attrs.get("title"),
                 )
-
-            # # Sort manually if needed (though API returns sorted by default)
-            # formatted_chapters.sort(
-            #     key=lambda c: (
-            #         float(c.chapter)
-            #         if c.chapter and c.chapter.replace(".", "", 1).isdigit()
-            #         else float("inf")
-            #     )
-            # )
-
-            return MangaDetail(
-                id=id,
-                title=title,
-                description=description,
-                imageURL=cover_url,
-                chapters=formatted_chapters,
-                year=year,
-                genres=genres,
             )
+
+        # # Sort manually if needed (though API returns sorted by default)
+        # formatted_chapters.sort(
+        #     key=lambda c: (
+        #         float(c.chapter)
+        #         if c.chapter and c.chapter.replace(".", "", 1).isdigit()
+        #         else float("inf")
+        #     )
+        # )
+
+        return MangaDetail(
+            id=id,
+            title=title,
+            description=description,
+            imageURL=cover_url,
+            chapters=formatted_chapters,
+            year=year,
+            genres=genres,
+        )
 
     except httpx.HTTPStatusError as e:
         raise HTTPException(
@@ -306,101 +318,95 @@ async def fetch_manga_detail(id: str = Query(..., description="MangaDex manga ID
 async def read_manga_chapter(
     mangaID: str = Query(..., description="MangaDex manga ID"),
     chapter_index: int = Query(0, description="Index of the chapter to view"),
+    async_client: httpx.AsyncClient = Depends(get_async_client),
 ):
 
-    async with httpx.AsyncClient() as client:
-        try:
-            # Get manga details
-            manga_resp = await client.get(
-                f"{BASE_URL}/manga/{mangaID}",
-                params={
-                    "includes[]": "cover_art",
-                },
-            )
-            manga_resp.raise_for_status()
-            manga_data = manga_resp.json()["data"]
-            manga_title = manga_data["attributes"]["title"].get("en", "Untitled")
+    try:
+        # Get manga details
+        manga_resp = await async_client.get(
+            f"{BASE_URL}/manga/{mangaID}",
+            params={
+                "includes[]": "cover_art",
+            },
+        )
+        manga_resp.raise_for_status()
+        manga_data = manga_resp.json()["data"]
+        manga_title = manga_data["attributes"]["title"].get("en", "Untitled")
 
-            # Get cover image
-            cover_rel = next(
-                (
-                    rel
-                    for rel in manga_data["relationships"]
-                    if rel["type"] == "cover_art"
-                ),
-                None,
-            )
-            cover_image = (
-                f"{UPLOAD_BASE_URL}/covers/{mangaID}/{cover_rel['attributes']['fileName']}.256.jpg"
-                if cover_rel
-                else "https://via.placeholder.com/256x350?text=No+Image"
-            )
+        # Get cover image
+        cover_rel = next(
+            (rel for rel in manga_data["relationships"] if rel["type"] == "cover_art"),
+            None,
+        )
+        cover_image = (
+            f"{UPLOAD_BASE_URL}/covers/{mangaID}/{cover_rel['attributes']['fileName']}.256.jpg"
+            if cover_rel
+            else "https://via.placeholder.com/256x350?text=No+Image"
+        )
 
-            # Get chapters
-            chapters_resp = await client.get(
-                f"{BASE_URL}/manga/{mangaID}/feed",
-                params={"translatedLanguage[]": "en"},
-            )
-            chapters = chapters_resp.json()["data"]
+        # Get chapters
+        chapters_resp = await async_client.get(
+            f"{BASE_URL}/manga/{mangaID}/feed",
+            params={"translatedLanguage[]": "en"},
+        )
+        chapters = chapters_resp.json()["data"]
 
-            # Filter and sort chapters
-            valid_chapters = [
-                ch
-                for ch in chapters
-                if ch["attributes"].get("chapter")
-                and not is_nan(ch["attributes"]["chapter"])
-            ]
-            valid_chapters.sort(key=lambda ch: float(ch["attributes"]["chapter"]))
+        # Filter and sort chapters
+        valid_chapters = [
+            ch
+            for ch in chapters
+            if ch["attributes"].get("chapter")
+            and not is_nan(ch["attributes"]["chapter"])
+        ]
+        valid_chapters.sort(key=lambda ch: float(ch["attributes"]["chapter"]))
 
-            if not valid_chapters:
-                raise HTTPException(status_code=404, detail="No valid chapters found.")
+        if not valid_chapters:
+            raise HTTPException(status_code=404, detail="No valid chapters found.")
 
-            if chapter_index >= len(valid_chapters):
-                raise HTTPException(
-                    status_code=400, detail="Chapter index out of range."
-                )
+        if chapter_index >= len(valid_chapters):
+            raise HTTPException(status_code=400, detail="Chapter index out of range.")
 
-            selected_chapter = valid_chapters[chapter_index]
-            chapter_id = selected_chapter["id"]
-            chapter_number = selected_chapter["attributes"]["chapter"]
+        selected_chapter = valid_chapters[chapter_index]
+        chapter_id = selected_chapter["id"]
+        chapter_number = selected_chapter["attributes"]["chapter"]
 
-            title_data = selected_chapter["attributes"].get("title")
-            chapter_title = (
-                title_data.get("en")
-                if isinstance(title_data, dict) and "en" in title_data
-                else "No Title"
-            )
+        title_data = selected_chapter["attributes"].get("title")
+        chapter_title = (
+            title_data.get("en")
+            if isinstance(title_data, dict) and "en" in title_data
+            else "No Title"
+        )
 
-            # Get image filenames
-            at_home_resp = await client.get(f"{BASE_URL}/at-home/server/{chapter_id}")
-            chapter_info = at_home_resp.json()["chapter"]
-            hash_val = chapter_info["hash"]
-            image_filenames = chapter_info["data"]
+        # Get image filenames
+        at_home_resp = await async_client.get(f"{BASE_URL}/at-home/server/{chapter_id}")
+        chapter_info = at_home_resp.json()["chapter"]
+        hash_val = chapter_info["hash"]
+        image_filenames = chapter_info["data"]
 
-            image_urls = [
-                f"{UPLOAD_BASE_URL}/data/{hash_val}/{filename}"
-                for filename in image_filenames
-            ]
+        image_urls = [
+            f"{UPLOAD_BASE_URL}/data/{hash_val}/{filename}"
+            for filename in image_filenames
+        ]
 
-            return MangaChapterView(
-                mangaID=mangaID,
-                mangaTitle=manga_title,
-                coverImage=cover_image,
-                selectedChapter=ChapterImageResponse(
-                    id=chapter_id,
-                    title=chapter_title,
-                    chapterNumber=chapter_number,
-                    imageURLs=image_urls,
-                ),
-            )
+        return MangaChapterView(
+            mangaID=mangaID,
+            mangaTitle=manga_title,
+            coverImage=cover_image,
+            selectedChapter=ChapterImageResponse(
+                id=chapter_id,
+                title=chapter_title,
+                chapterNumber=chapter_number,
+                imageURLs=image_urls,
+            ),
+        )
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail="Manga or chapter fetch failed",
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail="Manga or chapter fetch failed",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 def is_nan(value: str) -> bool:
@@ -412,159 +418,160 @@ def is_nan(value: str) -> bool:
 
 
 @router.get("/search", response_model=List[MangaSearchResult])
-async def search_manga(title: str = Query(..., min_length=3)):
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                f"{BASE_URL}/manga",
-                params={
-                    "title": title,
-                    "includes[]": "cover_art",
-                    "availableTranslatedLanguage[]": "en",
-                },
+async def search_manga(
+    title: str = Query(..., min_length=3),
+    async_client: httpx.AsyncClient = Depends(get_async_client),
+):
+    try:
+        response = await async_client.get(
+            f"{BASE_URL}/manga",
+            params={
+                "title": title,
+                "includes[]": "cover_art",
+                "availableTranslatedLanguage[]": "en",
+            },
+        )
+        response.raise_for_status()
+        manga_list = response.json()["data"]
+
+        results = []
+        for manga in manga_list:
+            # Extract cover image
+            cover = next(
+                (r for r in manga["relationships"] if r["type"] == "cover_art"),
+                None,
             )
-            response.raise_for_status()
-            manga_list = response.json()["data"]
+            file_name = cover["attributes"]["fileName"] if cover else None
 
-            results = []
-            for manga in manga_list:
-                # Extract cover image
-                cover = next(
-                    (r for r in manga["relationships"] if r["type"] == "cover_art"),
-                    None,
-                )
-                file_name = cover["attributes"]["fileName"] if cover else None
+            # Safely extract title and description
+            title_data = manga["attributes"].get("title", {})
+            description_data = manga["attributes"].get("description", {})
 
-                # Safely extract title and description
-                title_data = manga["attributes"].get("title", {})
-                description_data = manga["attributes"].get("description", {})
+            manga_title = title_data.get("en", "Untitled")
+            manga_description = description_data.get("en", "")
 
-                manga_title = title_data.get("en", "Untitled")
-                manga_description = description_data.get("en", "")
-
-                image_url = (
-                    f"{UPLOAD_BASE_URL}/covers/{manga['id']}/{file_name}.256.jpg"
-                    if file_name
-                    else "https://via.placeholder.com/256x350?text=No+Image"
-                )
-
-                results.append(
-                    MangaSearchResult(
-                        id=manga["id"],
-                        title=manga_title,
-                        description=manga_description,
-                        image=image_url,
-                    )
-                )
-
-            return results
-
-        except httpx.HTTPError:
-            raise HTTPException(
-                status_code=502, detail="Failed to fetch manga data from MangaDex."
+            image_url = (
+                f"{UPLOAD_BASE_URL}/covers/{manga['id']}/{file_name}.256.jpg"
+                if file_name
+                else "https://via.placeholder.com/256x350?text=No+Image"
             )
+
+            results.append(
+                MangaSearchResult(
+                    id=manga["id"],
+                    title=manga_title,
+                    description=manga_description,
+                    image=image_url,
+                )
+            )
+
+        return results
+
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=502, detail="Failed to fetch manga data from MangaDex."
+        )
 
 
 @router.get("/search", response_model=List[MangaSearchResult])
-async def search_manga(title: str = Query(..., min_length=3)):
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                f"{BASE_URL}/manga",
-                params={
-                    "title": title,
-                    "includes[]": "cover_art",
-                    "availableTranslatedLanguage[]": "en",
-                },
+async def search_manga(
+    title: str = Query(..., min_length=3),
+    async_client: httpx.AsyncClient = Depends(get_async_client),
+):
+    try:
+        response = await async_client.get(
+            f"{BASE_URL}/manga",
+            params={
+                "title": title,
+                "includes[]": "cover_art",
+                "availableTranslatedLanguage[]": "en",
+            },
+        )
+        response.raise_for_status()
+        manga_list = response.json()["data"]
+
+        results = []
+        for manga in manga_list:
+            # Extract cover image
+            cover = next(
+                (r for r in manga["relationships"] if r["type"] == "cover_art"),
+                None,
             )
-            response.raise_for_status()
-            manga_list = response.json()["data"]
+            file_name = cover["attributes"]["fileName"] if cover else None
 
-            results = []
-            for manga in manga_list:
-                # Extract cover image
-                cover = next(
-                    (r for r in manga["relationships"] if r["type"] == "cover_art"),
-                    None,
-                )
-                file_name = cover["attributes"]["fileName"] if cover else None
+            # Safely extract title and description
+            title_data = manga["attributes"].get("title", {})
+            description_data = manga["attributes"].get("description", {})
 
-                # Safely extract title and description
-                title_data = manga["attributes"].get("title", {})
-                description_data = manga["attributes"].get("description", {})
+            manga_title = title_data.get("en", "Untitled")
+            manga_description = description_data.get("en", "")
 
-                manga_title = title_data.get("en", "Untitled")
-                manga_description = description_data.get("en", "")
-
-                image_url = (
-                    f"{UPLOAD_BASE_URL}/covers/{manga['id']}/{file_name}.256.jpg"
-                    if file_name
-                    else "https://via.placeholder.com/256x350?text=No+Image"
-                )
-
-                results.append(
-                    MangaSearchResult(
-                        id=manga["id"],
-                        title=manga_title,
-                        description=manga_description,
-                        image=image_url,
-                    )
-                )
-
-            return results
-
-        except httpx.HTTPError:
-            raise HTTPException(
-                status_code=502, detail="Failed to fetch manga data from MangaDex."
+            image_url = (
+                f"{UPLOAD_BASE_URL}/covers/{manga['id']}/{file_name}.256.jpg"
+                if file_name
+                else "https://via.placeholder.com/256x350?text=No+Image"
             )
+
+            results.append(
+                MangaSearchResult(
+                    id=manga["id"],
+                    title=manga_title,
+                    description=manga_description,
+                    image=image_url,
+                )
+            )
+
+        return results
+
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=502, detail="Failed to fetch manga data from MangaDex."
+        )
 
 
 @router.get("/latest", response_model=List[MangaBasicInfo])
-async def get_latest_updated_manga():
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                f"{BASE_URL}/manga",
-                params={
-                    "limit": 20,
-                    "order[updatedAt]": "desc",
-                    "availableTranslatedLanguage[]": "en",
-                    "includes[]": "cover_art",
-                },
+async def get_latest_updated_manga(
+    async_client: httpx.AsyncClient = Depends(get_async_client),
+):
+    try:
+        response = await async_client.get(
+            f"{BASE_URL}/manga",
+            params={
+                "limit": 20,
+                "order[updatedAt]": "desc",
+                "availableTranslatedLanguage[]": "en",
+                "includes[]": "cover_art",
+            },
+        )
+        response.raise_for_status()
+
+        manga_list = response.json()["data"]
+        result = []
+
+        for manga in manga_list:
+            title = manga["attributes"]["title"].get("en", "No Title")
+
+            # Find cover_art relationship
+            cover = next(
+                (rel for rel in manga["relationships"] if rel["type"] == "cover_art"),
+                None,
             )
-            response.raise_for_status()
+            file_name = cover["attributes"]["fileName"] if cover else None
 
-            manga_list = response.json()["data"]
-            result = []
-
-            for manga in manga_list:
-                title = manga["attributes"]["title"].get("en", "No Title")
-
-                # Find cover_art relationship
-                cover = next(
-                    (
-                        rel
-                        for rel in manga["relationships"]
-                        if rel["type"] == "cover_art"
-                    ),
-                    None,
-                )
-                file_name = cover["attributes"]["fileName"] if cover else None
-
-                image_url = (
-                    f"{UPLOAD_BASE_URL}/covers/{manga['id']}/{file_name}.256.jpg"
-                    if file_name
-                    else None
-                )
-
-                result.append(
-                    MangaBasicInfo(id=manga["id"], title=title, imageUrl=image_url)
-                )
-
-            return result
-
-        except httpx.HTTPError:
-            raise HTTPException(
-                status_code=502,
-                detail="Failed to fetch latest manga data from MangaDex.",
+            image_url = (
+                f"{UPLOAD_BASE_URL}/covers/{manga['id']}/{file_name}.256.jpg"
+                if file_name
+                else None
             )
+
+            result.append(
+                MangaBasicInfo(id=manga["id"], title=title, imageUrl=image_url)
+            )
+
+        return result
+
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to fetch latest manga data from MangaDex.",
+        )

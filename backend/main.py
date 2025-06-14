@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 import logging
@@ -13,8 +13,11 @@ from database import engine
 from sqlalchemy import text
 from contextlib import asynccontextmanager
 
-
 import os
+import httpx
+
+# async_client: httpx.AsyncClient = None  # Global reference
+
 
 # Configure logging centrally
 logging.basicConfig(
@@ -30,6 +33,8 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup code here
 
+    # global async_client
+
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
@@ -37,10 +42,19 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
 
+    # 🔧 Initialize AsyncClient once and reuse it
+    app.state.async_client = httpx.AsyncClient(
+        http2=True, transport=httpx.AsyncHTTPTransport(retries=2)
+    )
+    print("✅ Async HTTP client initialized.")
+
     yield  # control returns here after startup, before shutdown
 
     # Shutdown code here (optional)
     # e.g., close connections, cleanup
+    await app.state.async_client.aclose()
+    print("🛑 Async HTTP client closed.")
+
     logger.info("Shutting down Mangaverse FastAPI REST API Server...")
 
 
@@ -49,6 +63,7 @@ app = FastAPI(lifespan=lifespan)
 # Allow requests from your frontend
 origins = [
     "http://localhost:5173",  # Vite
+    "https://inform-xhtml-weapon-dawn.trycloudflare.com",  # Cloudflare Tunnel
 ]
 
 app.add_middleware(
@@ -64,9 +79,17 @@ app.include_router(mangaRouter)
 app.include_router(AIRouter)
 
 
+# @app.get("/")
+# async def root():
+#     return {"message": "Hello World"}
+
+
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
+async def root(request: Request):
+    return {
+        "message": "Hello World",
+        "client_loaded": isinstance(request.app.state.async_client, httpx.AsyncClient),
+    }
 
 
 # --- Run server ---

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router"; // <-- Add this
 import "./updated-manga.css";
 import axios from "axios";
+import apiClient from "../../utils/axios";
 
 const Updated_Manga = () => {
   const [mangaList, setMangaList] = useState([]);
@@ -10,7 +11,7 @@ const Updated_Manga = () => {
   useEffect(() => {
     const fetchUpdatedManga = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/manga/latest");
+        const response = await apiClient.get("/api/manga/latest");
 
         // The response data is already in the expected format
         setMangaList(response.data);

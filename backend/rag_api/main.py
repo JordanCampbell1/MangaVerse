@@ -1,3 +1,4 @@
+from rag_api.utils.qdrant_check import get_qdrant_client
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 import torch
@@ -5,10 +6,13 @@ import os
 
 # Initialize Qdrant and embedding model
 
-QDRANT_HOST_URL = os.getenv("QDRANT_HOST_URL", "http://localhost:6999")
+QDRANT_HOST_URL = os.getenv("QDRANT_HOST_URL", "localhost")
 QDRANT_PORT = os.getenv("QDRANT_PORT", 6999)
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", None)
 
-client = QdrantClient(host="localhost", port=6999)
+client = get_qdrant_client(
+    QDRANT_HOST_URL, QDRANT_API_KEY
+)  # This function should be defined in utils/qdrant_check.py
 
 # collection = client.get_or_create_collection("manga")
 
