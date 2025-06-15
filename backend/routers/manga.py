@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Dict, List, Optional
@@ -575,3 +575,26 @@ async def get_latest_updated_manga(
             status_code=502,
             detail="Failed to fetch latest manga data from MangaDex.",
         )
+
+
+# @router.get("/proxy/cover/{manga_id}/{filename}")
+# async def proxy_cover(
+#     manga_id: str,
+#     filename: str,
+#     async_client: httpx.AsyncClient = Depends(get_async_client),
+# ):
+#     """
+#     Proxy endpoint to fetch manga cover images from MangaDex.
+#     :param manga_id: The ID of the manga.
+#     :param filename: The filename of the cover image.
+#     :param async_client: The HTTP client for making requests.
+#     :return: The cover image as a response.
+#     """
+#     url = f"https://uploads.mangadex.org/covers/{manga_id}/{filename}"
+
+#     try:
+#         r = await async_client.get(url)
+#         r.raise_for_status()
+#         return Response(content=r.content, media_type="image/jpeg")
+#     except httpx.HTTPStatusError:
+#         raise HTTPException(status_code=404, detail="Image not found")

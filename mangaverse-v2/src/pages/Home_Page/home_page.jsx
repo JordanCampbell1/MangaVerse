@@ -64,6 +64,7 @@ const Home_Page = () => {
                 className="card-img-top"
                 alt={manga.title}
                 style={{ height: "350px", objectFit: "cover" }}
+                referrerPolicy="no-referrer"
               />
               <div className="card-body">
                 <h5 className="card-title text-center">{manga.title}</h5>
