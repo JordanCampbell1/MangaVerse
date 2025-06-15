@@ -58,7 +58,7 @@ const Manga_Details = ({ id, imageURL }) => {
       <div className="small-details">
         <h2>{manga.title}</h2>
         <div>
-          <img src={manga.imageURL} alt="manga-pic-icon" />
+          <img src={manga.imageURL} alt="manga-pic-icon" referrerPolicy="no-referrer" />
         </div>
 
         {/* New Year and Genres section */}

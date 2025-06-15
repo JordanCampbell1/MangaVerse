@@ -56,6 +56,7 @@ const Updated_Manga = () => {
                     src={manga.imageUrl}
                     className="card-img-top"
                     alt={manga.title}
+                    referrerPolicy="no-referrer"
                   />
                 </Link>
               ) : (

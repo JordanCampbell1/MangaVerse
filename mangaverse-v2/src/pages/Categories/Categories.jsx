@@ -100,6 +100,7 @@ const Categories = () => {
                 alt={manga.title}
                 className="card-img-top"
                 style={{ height: "350px", objectFit: "cover" }}
+                referrerPolicy="no-referrer"
               />
               <div className="card-body">
                 <h5 className="card-title">{manga.title}</h5>

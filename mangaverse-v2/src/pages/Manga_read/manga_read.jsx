@@ -185,6 +185,7 @@ const Manga_Read = () => {
                 console.error(`Failed to load image: ${src}`);
                 e.target.style.display = 'none';
               }}
+              referrerPolicy="no-referrer"
             />
             {!readerMode && (
               <div className="text-center mt-2 text-muted small">
@@ -228,6 +229,7 @@ const Manga_Read = () => {
             alt="Manga Cover"
             className="rounded"
             style={{ width: "60px", height: "80px", objectFit: "cover", opacity: 0.7 }}
+            referrerPolicy="no-referrer"
           />
         </div>
       )}

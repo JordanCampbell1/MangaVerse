@@ -48,6 +48,7 @@ const SearchResults = ({ query, results, loading, error }) => {
                 alt={manga.title}
                 className="card-img-top img-fluid"
                 style={{ height: "300px", objectFit: "cover", borderRadius: "0.5rem" }}
+                referrerPolicy="no-referrer"
               />
               <div className="card-body">
                 <h5 className="card-title text-truncate">{manga.title}</h5>
