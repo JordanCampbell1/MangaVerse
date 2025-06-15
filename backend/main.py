@@ -63,7 +63,7 @@ app = FastAPI(lifespan=lifespan)
 # Allow requests from your frontend
 origins = [
     "http://localhost:5173",  # Vite
-    "https://inform-xhtml-weapon-dawn.trycloudflare.com",  # Cloudflare Tunnel
+    "https://manga-verse-sigma.vercel.app",  # Cloudflare Tunnel
 ]
 
 app.add_middleware(
