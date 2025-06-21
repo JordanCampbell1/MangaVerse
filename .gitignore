@@ -4,3 +4,4 @@ node_modules
 pgadmin_data
 postgres_data
 config.txt
+__pycache__
